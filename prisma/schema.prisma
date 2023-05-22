@@ -12,17 +12,22 @@ datasource db {
 
 model User {
   id            Int       @id @default(autoincrement())
+  userName      String    @unique @map("username")
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
   email         String    @unique
   password      String    
   role          Role      @default(value: USER)
-  recoveryToken String?    @map("recovery_token")
-  verifyToken   String   @map("verify_token")
+  recoveryToken String?   @map("recovery_token")
+  verifyToken   String    @map("verify_token")
+  isPublicName  Boolean   @map("is_public_name") @default(false)
+  isPublicEmail Boolean   @map("is_public_email") @default(false)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   ///relations
-  profile       Profile?
-  commentLikes  UsersOnComments[]
+  commentLikes  UsersLikeComments[]
+  postLikes     UsersLikePosts[]
   posts         Post[]
   comments      Comment[]
   reports       Report[]
@@ -30,40 +35,27 @@ model User {
   @@map("user")
 }
 
-model Profile {
-  id            Int       @id @default(autoincrement())
-  userName      String    @unique @map("username")
-  firstName     String    @map("first_name")
-  lastName      String    @map("last_name")
-  isPublicName  Boolean   @map("is_public_name") @default(false)
-  isPublicEmail Boolean   @map("is_public_email") @default(false)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  ///relations
-  user          User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
-  userId        Int       @unique
-
-  @@map("profile")
-}
 
 model Comment {
   id            Int       @id @default(autoincrement())
   body          String
   isDraft       Boolean   @default(false) @map("is_draft")
+  amountLike    Int?      @default(0) @map("amount_like")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   
   ///relations
   author        User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   authorId      Int
-  userLike      UsersOnComments[]
+  post          Post      @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  postId        Int
+  userLike      UsersLikeComments[]
   reports   Report[]
 
   @@map("comment")
 }
 
-model UsersOnComments {
+model UsersLikeComments {
   id        Int       @id @default(autoincrement())
   user      User?     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   userId    Int?
@@ -71,7 +63,7 @@ model UsersOnComments {
   commentId Int?
   createdAt DateTime  @default(now()) @map("created_at")
 
-  @@map("users_comments")
+  @@map("users_like_comments")
 
 } 
 
@@ -79,15 +71,29 @@ model Post {
   id        Int       @id @default(autoincrement())
   title     String
   isDraft   Boolean   @default(false) @map("is_draft")
+  amountLike    Int?      @default(0) @map("amount_like")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   ///relations
-  author      User     @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
-  authorId    Int
+  author    User     @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  authorId  Int
+  comments  Comment[]
+  userLikes UsersLikePosts[]  
   reports   Report[]
 
   @@map("post")
+}
+
+model UsersLikePosts {
+  id        Int       @id @default(autoincrement())
+  user      User?     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  userId    Int?
+  post      Post?  @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  postId    Int?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("users_like_posts")
 }
 
 model Report {
