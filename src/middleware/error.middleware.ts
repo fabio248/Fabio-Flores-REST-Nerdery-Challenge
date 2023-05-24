@@ -5,12 +5,16 @@ export function errorValidateHandler(
   error: Boom<unknown>,
   _req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ) {
-  const { payload } = error.output;
-  res
-    .status(payload.statusCode)
-    .json({ error: payload.error, message: payload.message });
+  if (error.isBoom) {
+    const { payload } = error.output;
+    res
+      .status(payload.statusCode)
+      .json({ error: payload.error, message: payload.message });
+  } else {
+    next(error);
+  }
 }
 
 export function genericErrorHandler(

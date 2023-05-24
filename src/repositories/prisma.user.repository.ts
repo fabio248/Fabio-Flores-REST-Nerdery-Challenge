@@ -8,7 +8,7 @@ export default class PrismaUserRepository implements UserRepositoryInterface {
   all(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
-  find(id: number): Promise<User | null> {
+  findById(id: number): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
   findByEmail(email: string) {
@@ -20,8 +20,11 @@ export default class PrismaUserRepository implements UserRepositoryInterface {
   create(input: UserEntry): Promise<User> {
     return this.prisma.user.create({ data: input });
   }
-  update(id: number, data: Partial<UserEntry>): Promise<User> {
-    return this.prisma.user.update({ where: { id }, data });
+  update(id: number, input: Partial<UserEntry>): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data: input,
+    });
   }
   delete(id: number): Promise<User> {
     return this.prisma.user.delete({ where: { id } });

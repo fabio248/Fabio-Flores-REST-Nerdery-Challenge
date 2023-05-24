@@ -9,9 +9,10 @@ export interface UserEntry {
   role: dbPrisma.user.Role;
   isPublicEmail: boolean;
   isPublicName: boolean;
+  isVerified: boolean;
   password: string;
   recoveryToken: string | null;
-  verifyToken: string;
+  verifyToken: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

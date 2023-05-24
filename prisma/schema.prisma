@@ -19,7 +19,8 @@ model User {
   password      String    
   role          Role      @default(value: USER)
   recoveryToken String?   @map("recovery_token")
-  verifyToken   String    @map("verify_token")
+  verifyToken   String?    @map("verify_token")
+  isVerified    Boolean   @default(false)
   isPublicName  Boolean   @map("is_public_name") @default(false)
   isPublicEmail Boolean   @map("is_public_email") @default(false)
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -56,12 +57,13 @@ model Comment {
 }
 
 model UsersLikeComments {
-  id        Int       @id @default(autoincrement())
-  user      User?     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  id        Int           @id @default(autoincrement())
+  type      TypeReaction
+  user      User?         @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   userId    Int?
-  comment   Comment?  @relation(fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  comment   Comment?      @relation(fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   commentId Int?
-  createdAt DateTime  @default(now()) @map("created_at")
+  createdAt DateTime      @default(now()) @map("created_at")
 
   @@map("users_like_comments")
 
@@ -86,12 +88,13 @@ model Post {
 }
 
 model UsersLikePosts {
-  id        Int       @id @default(autoincrement())
-  user      User?     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  id        Int           @id @default(autoincrement())
+  type      TypeReaction
+  user      User?         @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   userId    Int?
-  post      Post?  @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  post      Post?         @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Restrict)
   postId    Int?
-  createdAt DateTime  @default(now()) @map("created_at")
+  createdAt DateTime      @default(now()) @map("created_at")
 
   @@map("users_like_posts")
 }
@@ -114,6 +117,13 @@ model Report {
 }
 
 enum Role {
-  USER
+  USER 
   MODERATOR
+  @@map("role")
+}
+
+enum TypeReaction {
+  LIKE
+  DISLIKE
+  @@map("type_reaction")
 }

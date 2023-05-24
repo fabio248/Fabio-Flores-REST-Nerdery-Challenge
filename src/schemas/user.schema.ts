@@ -11,6 +11,7 @@ const isPublicEmail = Joi.boolean();
 const isPublicName = Joi.boolean();
 const recoveryToken = Joi.string();
 const verifyToken = Joi.string();
+const confirmToken = Joi.string();
 
 export const createUserSchema = Joi.object({
   firstName: firstName.required(),
@@ -36,4 +37,8 @@ export const updateUserSchema = Joi.object({
 
 export const getUserSchema = Joi.object({
   id: id.required(),
+});
+
+export const confirmAccountSchema = Joi.object({
+  confirmToken,
 });

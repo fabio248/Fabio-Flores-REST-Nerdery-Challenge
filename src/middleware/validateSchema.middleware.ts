@@ -4,7 +4,7 @@ import { badRequest } from '@hapi/boom';
 
 export function validateSchemaHandler(
   schema: ObjectSchema,
-  property: 'params' | 'body',
+  property: 'params' | 'body' | 'query',
 ) {
   return (req: Request, _res: Response, next: NextFunction) => {
     const data = req[property as keyof typeof req];

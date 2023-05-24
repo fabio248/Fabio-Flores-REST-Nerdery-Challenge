@@ -7,6 +7,7 @@ import {
   errorValidateHandler,
   genericErrorHandler,
 } from './middleware/error.middleware';
+import { initEvents } from './event';
 
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,6 +22,8 @@ routerApi(app);
 
 app.use(errorValidateHandler);
 app.use(genericErrorHandler);
+
 app.listen(config.port, () => {
   console.log(`Running on port ${config.port}`);
+  initEvents();
 });

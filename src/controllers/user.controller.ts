@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { userService } from '../dependencies/dependencies';
 
-export const createUser = async (
+export async function createUser(
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+) {
   try {
     const inputData = req.body;
     const user = await userService.create(inputData);
@@ -16,4 +16,18 @@ export const createUser = async (
   } catch (error) {
     next(error);
   }
-};
+}
+
+export async function confirmateAccount(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { confirmToken } = req.query;
+    const response = await userService.confirmateAccount(`${confirmToken}`);
+    res.status(200).json({ messsage: response.message });
+  } catch (error) {
+    next(error);
+  }
+}
