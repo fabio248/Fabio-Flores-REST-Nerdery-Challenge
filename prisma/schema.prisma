@@ -19,7 +19,8 @@ model User {
   password      String    
   role          Role      @default(value: USER)
   recoveryToken String?   @map("recovery_token")
-  verifyToken   String?    @map("verify_token")
+  verifyToken   String?   @map("verify_token")
+  accessToken   String?   @map("access_token")
   isVerified    Boolean   @default(false)
   isPublicName  Boolean   @map("is_public_name") @default(false)
   isPublicEmail Boolean   @map("is_public_email") @default(false)

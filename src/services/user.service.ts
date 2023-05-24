@@ -4,7 +4,7 @@ import {
   UserEntry,
   UserWithOutSensitiveInfo,
 } from '../types/user';
-import { hashSync } from 'bcrypt';
+import { compareSync, hashSync } from 'bcrypt';
 import { badData, notFound, unauthorized } from '@hapi/boom';
 import Jwt from 'jsonwebtoken';
 import config from '../config';
@@ -95,5 +95,27 @@ export default class UserService {
     });
 
     return { message: 'Account confirmated' };
+  }
+
+  async findByEmail(email: string): Promise<UserEntry | null> {
+    const user: UserEntry | null = await this.userRepo.findByEmail(email);
+
+    return user;
+  }
+
+  async authenticateUser(email: string, password: string): Promise<UserEntry> {
+    const user = await this.findByEmail(email);
+
+    if (!user) {
+      throw unauthorized('email or password invalid');
+    }
+
+    const isPasswordMatch: boolean = compareSync(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw unauthorized('email or password invalid');
+    }
+
+    return user;
   }
 }

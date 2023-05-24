@@ -1,3 +1,4 @@
+/// <reference types="./types/request.d.ts" />
 import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
@@ -13,6 +14,9 @@ const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
+
+// import authenticate methods
+import './utils/auth/index';
 
 app.get('/ping', (_req: Request, res: Response) => {
   res.send('pong');
