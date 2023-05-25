@@ -1,15 +1,13 @@
 import { UserRepositoryInterface } from '../repositories/repository.interface';
-import {
-  CreateUserEntry,
-  UserEntry,
-  UserWithOutSensitiveInfo,
-} from '../types/user';
+import { CreateUserEntry, UserWithOutSensitiveInfo } from '../types/user';
 import { compareSync, hashSync } from 'bcrypt';
 import { badData, notFound, unauthorized } from '@hapi/boom';
-import Jwt from 'jsonwebtoken';
+import Jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../config';
 import { emitter } from '../event';
 import { USER_EMAIL_CONFIRMATION } from '../event/mailer.event';
+import { createNewJsonWithoutFields } from '../utils/general.utils';
+import { User } from '@prisma/client';
 
 export default class UserService {
   constructor(private readonly userRepo: UserRepositoryInterface) {}
@@ -27,18 +25,16 @@ export default class UserService {
       throw badData('Username already taken');
     }
 
-    const user: UserWithOutSensitiveInfo = await this.userRepo.create({
+    const user: User = await this.userRepo.create({
       ...input,
       password: hashSync(input.password!, 10),
     });
 
     emitter.emit(USER_EMAIL_CONFIRMATION, { email: user.email, id: user.id });
 
-    delete user.password;
-    delete user.updatedAt;
-    delete user.createdAt;
+    const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
 
-    return user;
+    return userWithOutSensitiveInfo;
   }
   async findOne(id: number): Promise<UserWithOutSensitiveInfo> {
     const user = await this.userRepo.findById(id);
@@ -47,40 +43,65 @@ export default class UserService {
       throw notFound('User not found');
     }
 
-    return user;
+    const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
+
+    return userWithOutSensitiveInfo;
   }
 
   async update(
     id: number,
-    input: Partial<UserEntry>,
+    input: Partial<User>,
   ): Promise<UserWithOutSensitiveInfo> {
-    const { password } = input;
-    const userUpdated: UserWithOutSensitiveInfo = await this.userRepo.update(
-      id,
-      {
-        ...input,
-        password: password ? hashSync(password, 10) : undefined,
-      },
-    );
+    //Check if exist the user
+    await this.findOne(id);
 
-    delete userUpdated.password;
-    delete userUpdated.updatedAt;
-    delete userUpdated.createdAt;
+    const { password, userName, email } = input;
 
-    return userUpdated;
+    //Check if the username isn't already taken
+    if (userName) {
+      await this.isUserNameAlreadyTaken(userName);
+    }
+
+    //Check if the email isn't already taken
+    if (email) {
+      await this.isEmailAlareadyTaken(email);
+    }
+
+    const user: User = await this.userRepo.update(id, {
+      ...input,
+      password: password ? hashSync(password, 10) : undefined,
+    });
+
+    const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
+
+    return userWithOutSensitiveInfo;
+  }
+
+  async detele(id: number): Promise<object> {
+    //Check if exits the unser
+    await this.findOne(id);
+
+    await this.userRepo.delete(id);
+
+    return { message: `deleted user with id: ${id} ` };
   }
 
   async generateConfimationToken(id: number): Promise<string> {
     const payload = { sub: id };
     const token = Jwt.sign(payload, config.jwtSecret, { expiresIn: '15min' });
+
     await this.update(id, { verifyToken: token });
+
     return token;
   }
 
   async confirmateAccount(token: string): Promise<{ message: string }> {
-    const payload = Jwt.verify(token, config.jwtSecret);
+    const payload: JwtPayload = Jwt.verify(
+      token,
+      config.jwtSecret,
+    ) as JwtPayload;
 
-    const user: UserWithOutSensitiveInfo = await this.findOne(+payload.sub!);
+    const user: User = await this.findUserWithAllInfo(+payload.sub!);
 
     if (user.verifyToken !== token) {
       throw unauthorized('Invalid Token');
@@ -97,13 +118,10 @@ export default class UserService {
     return { message: 'Account confirmated' };
   }
 
-  async findByEmail(email: string): Promise<UserEntry | null> {
-    const user: UserEntry | null = await this.userRepo.findByEmail(email);
-
-    return user;
-  }
-
-  async authenticateUser(email: string, password: string): Promise<UserEntry> {
+  async authenticateUser(
+    email: string,
+    password: string,
+  ): Promise<UserWithOutSensitiveInfo> {
     const user = await this.findByEmail(email);
 
     if (!user) {
@@ -116,6 +134,63 @@ export default class UserService {
       throw unauthorized('email or password invalid');
     }
 
-    return user;
+    const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
+
+    return userWithOutSensitiveInfo;
+  }
+
+  private async findByEmail(email: string): Promise<User | null> {
+    const foundUser: User | null = await this.userRepo.findByEmail(email);
+
+    return foundUser;
+  }
+
+  private createUserWithOutSensitiveInfo(user: User): UserWithOutSensitiveInfo {
+    const userWithOutSensitiveInfo = createNewJsonWithoutFields<User>(user, [
+      'password',
+      'role',
+      'createdAt',
+      'updatedAt',
+      'verifyToken',
+      'accessToken',
+      'recoveryToken',
+    ]);
+
+    if (userWithOutSensitiveInfo.isPublicEmail) {
+      delete userWithOutSensitiveInfo.email;
+    }
+
+    if (userWithOutSensitiveInfo.isPublicName) {
+      delete userWithOutSensitiveInfo.firstName;
+      delete userWithOutSensitiveInfo.lastName;
+    }
+
+    return userWithOutSensitiveInfo;
+  }
+
+  private async findUserWithAllInfo(id: number): Promise<User> {
+    const userWithAllInfo: User | null = await this.userRepo.findById(id);
+
+    if (!userWithAllInfo) {
+      throw notFound('User not found');
+    }
+
+    return userWithAllInfo;
+  }
+
+  private async isEmailAlareadyTaken(email: string): Promise<void> {
+    const isEmailTaken = await this.userRepo.findByEmail(email);
+
+    if (isEmailTaken) {
+      throw badData('email already taken');
+    }
+  }
+
+  private async isUserNameAlreadyTaken(userName: string): Promise<void> {
+    const isUserNameTaken = await this.userRepo.findByUserName(userName);
+
+    if (isUserNameTaken) {
+      throw badData('username already taken');
+    }
   }
 }

@@ -1,9 +1,10 @@
-import { UserEntry } from './user';
+import { PayloadJwt } from './generic';
+import { User } from '@prisma/client';
 
 declare global {
   namespace Express {
     export interface Request {
-      user?: UserEntry;
+      user?: User | PayloadJwt;
     }
   }
 }

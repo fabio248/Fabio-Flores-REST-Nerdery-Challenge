@@ -33,7 +33,7 @@ export const updateUserSchema = Joi.object({
   isPublicName,
   recoveryToken,
   verifyToken,
-});
+}).min(1);
 
 export const getUserSchema = Joi.object({
   id: id.required(),

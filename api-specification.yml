@@ -1,0 +1,1164 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: Microblog API
+    url: https://virtserver.swaggerhub.com/FABIOFLORES_1/rest-nerdery-challenge/1.0.0
+info:
+  description: "API with 3 principal endpoints
+  - posts/
+  - accounts/
+  - comments/"
+  version: "1.0.0"
+  title: Microblog API
+  contact:
+    email: fabioflores@ravn.co
+tags:
+  - name: Posts
+    description: Operations available create, update, delete, read posts
+  - name: Accounts
+    description:  Operations available create, update, delete, read accounts
+  - name: Comments
+    description: Operations available create, update, delete, read comments
+security:
+  - ApiKeyAuth: []
+paths:
+  /posts:
+    get:
+      tags:
+        - Posts
+      summary: read posts
+      description: |
+        Get access to all posts that aren't draft without authentication
+      parameters:
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          required: true
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+            default: 10
+          required: true
+      responses:
+        '200':
+          description: return posts 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      security: 
+          - bearerAuth: []
+      tags:
+        - Posts
+      summary: create a new post
+      description: Add a post to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePost'
+      responses:
+        '201':
+          description: post created
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Post'
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /posts/{postId}:
+    get:
+      tags:
+        - Posts
+      summary: read a specific post
+      description: |
+        Get specific post with the amount of their likes
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to return
+      responses:
+        '200':
+          description: return posts 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostAmountLikes'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+    patch:
+      security:
+        - bearerAuth: []
+      tags: 
+        - Posts
+      summary: update a exits post
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+      responses:
+        '200':
+          description: post updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      security: 
+        - bearerAuth: []
+      tags: 
+        - Posts
+      summary: delete a exits post
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to delete
+      responses:
+        '200':
+          description: post deleted
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageDeleteRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /posts/{postId}/comments:
+    get:
+      tags:
+        - Posts
+      summary: get post with comments
+      description: |
+        return a post by id with all their comments
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to return
+      responses:
+        '200':
+          description: return the post with their comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostWithComments'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /posts/{postId}/reports:
+    post:
+      security:
+            - bearerAuth: []
+      tags:
+        - Posts
+      summary: Create a specific post report
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to report
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportToPost'
+      responses:
+        '201':
+          description: post reported
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/ReportToPost'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /posts/{postId}/likes:
+    get:
+      tags:
+        - Posts
+      summary: get information about likes for specific post
+      parameters: 
+        - in: path
+          name: postId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the post to return
+      responses:
+        '200':
+          description: return posts with specific informations like
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostInformationLikes'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /accounts:
+    get:
+      tags:
+        - Accounts
+      summary: read accounts
+      description: |
+        Get access to all accounts
+      parameters:
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          required: true
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+            default: 10
+          required: true
+      responses:
+        '200':
+          description: return records 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountWithoutSensitiveInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Forbidden
+        '404':
+          description: if no exits any accounts return an error
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - Accounts
+      summary: Create new account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccount'
+      responses:
+        '201':
+          description: account created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountWithoutSensitiveInfo'
+        '400':
+          description: invalid given info {field_with_error}
+  /accounts/{accountId}:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - Accounts
+      summary: Update an exist account
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the account to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccount'
+      responses:
+        '200':
+          description: account updated 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountWithoutSensitiveInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      security: 
+      - bearerAuth: []
+      tags: 
+        - Accounts
+      summary: delete a exits account
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the account to delete
+      responses:
+        '200':
+          description: account deleted
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageDeleteRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /accounts/{accountId}/posts:
+    get:
+      tags:
+        - Accounts
+      summary: get account with their posts
+      description: return an account by id with all their posts
+      parameters:
+        - in: path
+          name: accountId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the account to find their posts
+      responses:
+        '200':
+          description: return the account with their posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountWithPosts'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /comments:
+    get:
+      tags:
+        - Comments
+      summary: read comments
+      description: |
+        Get access to all comments that aren't draft without authentication
+      parameters:
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          required: true
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+            default: 10
+          required: true
+      responses:
+        '200':
+          description: return comments 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      security: 
+          - bearerAuth: []
+      tags:
+        - Comments
+      summary: create a new comment
+      description: Add an comment to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+      responses:
+        '201':
+          description: post created
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Post'
+        '400':
+          description: 'invalid input, object invalid'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /comments/{commentId}:
+    get:
+        tags:
+          - Comments
+        summary: get a specific comment
+        description: return a comment by id with the amount of their likes
+        parameters:
+          - in: path
+            name: commentId
+            schema:
+              type: integer
+              format: int32
+              minimum: 1
+            required: true
+            description: Numeric ID of the comment to return
+        responses:
+          '200':
+            description: return the comment
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CommentAmountLikes'
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '404':
+            $ref: '#/components/responses/NotFount'
+          '401':
+            $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - Comments
+      summary: Update an exist comment
+      parameters: 
+        - in: path
+          name: commentId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the comment to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateComment'
+      responses:
+        '200':
+          description: comment updated 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      security: 
+      - bearerAuth: []
+      tags: 
+        - Comments
+      summary: delete a exits comment
+      parameters: 
+        - in: path
+          name: commentId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the comment to delete
+      responses:
+        '200':
+          description: comment deleted
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageDeleteRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /comments/{commentId}/reports:
+    post:
+      security:
+            - bearerAuth: []
+      tags:
+        - Comments
+      summary: Create a specific comment report
+      parameters: 
+        - in: path
+          name: commentId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the comment to report
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportToComment'
+      responses:
+        '201':
+          description: comment reported
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/ReportToComment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /comments/{commentId}/likes:
+    get:
+      tags: 
+        - Comments
+      summary: get a specific comment with infomartion about their likes
+      description: return a comment by id with the users that like this comment
+      parameters:
+        - in: path
+          name: commentId
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          required: true
+          description: Numeric ID of the comment to return
+      responses:
+        '200':
+          description: return comment with specific informations like
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentInformationLikes'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header       
+      name: API-KEY
+  schemas:
+    Post:
+      type: object
+      required: 
+        - title
+        - description
+      properties:
+        id:
+          type: integer
+          example: 1
+        title: 
+          type: string
+          example: Example title post
+        description:
+          type: string
+          example: This is a sample description for a post
+        isDraft:
+          type: boolean
+          default: false
+          example: false
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    PostAmountLikes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title: 
+          type: string
+          example: Example title post
+        description:
+          type: string
+          example: This is a sample description for a post
+        isDraft:
+          type: boolean
+          default: false
+          example: false
+        amountLikes:
+          type: integer
+          example: 2
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    PostInformationLikes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title: 
+          type: string
+          example: Example title post
+        description:
+          type: string
+          example: This is a sample description for a post
+        isDraft:
+          type: boolean
+          default: false
+          example: false
+        amountLikes:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+        userlikes:
+          type: object
+          properties:
+            idUser:
+              type: integer
+              example: 1
+            NameUser:
+              type: string
+              example: Daniela 
+            createdAt:
+              type: string
+              example: "2023-05-19T06:09:45.465Z"
+    CreatePost:
+      type: object
+      required: 
+        - title
+        - description
+      properties:
+        title: 
+          type: string
+          example: Example title post
+        description:
+          type: string
+          example: This is a sample description for a post
+        isDraft:
+          type: boolean
+          default: false
+          example: false
+    PostUpdate:
+      type: object
+      properties:
+        title: 
+          type: string
+          example: title
+        description:
+          type: string
+          example: It's optional to change some parameter
+        isDraft:
+          type: boolean
+          default: false
+          example: true
+    PostWithComments:
+      type: object
+      properties:
+        post:
+          $ref: "#/components/schemas/Post"
+        comments: 
+          $ref: "#/components/schemas/Comment"
+    Comment:
+      type: object
+      required: 
+        - body
+        - isDraft
+      properties:
+        id:
+          type: integer
+          example: 1
+        body:
+          type: string
+          example: This is a sample body for a comment
+        isDraft:
+            type: boolean
+            default: false
+            example: false
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    CommentInformationLikes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        body:
+          type: string
+          example: This is a sample body for a comment
+        isDraft:
+            type: boolean
+            default: false
+            example: false
+        amountLikes:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+        userlikes:
+          type: object
+          properties:
+            idUser:
+              type: integer
+              example: 1
+            NameUser:
+              type: string
+              example: Kevin 
+            createdAt:
+              type: string
+              example: "2023-05-19T06:09:45.465Z"
+    CommentAmountLikes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        body:
+          type: string
+          example: This is a sample body for a comment
+        isDraft:
+            type: boolean
+            default: false
+            example: false
+        amountLikes:
+          type: integer
+          example: 2
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    UpdateComment:
+      type: object
+      properties:
+        body:
+          type: string
+          example: This is a sample body for a comment
+        isDraft:
+            type: boolean
+            default: false
+            example: false
+    Account:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          email:
+            type: string
+            example: fabioflores@gmail.com
+          password:
+            type: string
+            example: sample password
+          firstName:
+            type: string
+            example: Fabio
+          lastName:
+            type: string
+            example: Flores
+          userName:
+            type: string
+            example: fabioflores
+          role:
+            type: string
+            default: user
+            example: user
+          isPublicName:
+            type: boolean
+            default: true
+            example: true
+          isPublicEmail:
+            type: boolean
+            default: true
+            example: false
+          isVerifiedAccount:
+            type: boolean
+            default: fasle
+            example: true
+          recoveryToken:
+            type: string
+            default: null
+            example: null
+          verifyToken:
+            type: string
+            example: null
+          createdAt:
+            type: string
+            example: "2023-05-19T06:02:28.465Z"
+          updatedAt: 
+            type: string
+            example: "2023-05-19T18:58:46.440Z"
+    CreateAccount:
+      type: object
+      required:
+        - email
+        - password
+        - username
+        - firstName
+        - lastName
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: fabioflores@gmail.com
+        password:
+          type: string
+          example: sample password
+        firstName:
+          type: string
+          example: Fabio
+        lastName:
+          type: string
+          example: Flores
+        userName:
+          type: string
+          example: fabioflores
+        role:
+          type: string
+          default: user
+          example: user
+        isPublicName:
+          type: boolean
+          default: true
+          example: true
+        isPublicEmail:
+          type: boolean
+          default: true
+          example: false
+        isVerifiedAccount:
+          type: boolean
+          default: fasle
+          example: false
+        recoveryToken:
+          type: string
+          default: null
+          example: null
+        verifyToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    UpdateAccount:
+      type: object
+      properties:
+        email:
+          type: string
+          example: fabioflores@gmail.com
+        password:
+          type: string
+          example: sample password
+        firstName:
+          type: string
+          example: Fabio
+        lastName:
+          type: string
+          example: Flores
+        userName:
+          type: string
+          example: fabioflores
+        role:
+          type: string
+          default: user
+          example: moderator
+        isPublicName:
+          type: boolean
+          default: true
+          example: true
+        isPublicEmail:
+          type: boolean
+          default: true
+          example: false
+        isVerifiedAccount:
+          type: boolean
+          default: fasle
+          example: false
+    AccountWithoutSensitiveInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: fabioflores@ravn.co
+        firstName:
+          type: string
+          example: Fabio
+        lastName:
+          type: string
+          example: Flores
+        userName:
+          type: string
+          example: fabioflores
+        role:
+          type: string
+          default: user
+          example: user
+        isPublicName:
+          type: boolean
+          default: true
+          example: true
+        isPublicEmail:
+          type: boolean
+          default: true
+          example: false
+        isVerifiedAccount:
+          type: boolean
+          default: fasle
+          example: false
+        recoveryToken:
+          type: string
+          default: null
+          example: null
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    AccountWithPosts:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+        posts:
+          $ref: "#/components/schemas/Post"
+    CreateReportToComment:
+      type: object
+      required:
+        - idComment
+        - idUser
+        - reason
+      properties:
+        idComment:
+          type: integer
+          example: 2
+        idUser:
+          type: integer
+          example: 1
+        reason:
+          type: string
+          example: this is my reason!!
+    CreateReportToPost:
+      type: object
+      required:
+        - idPost
+        - idUser
+        - reason
+      properties:
+        idPost:
+          type: integer
+          example: 2
+        idUser:
+          type: integer
+          example: 1
+        reason:
+          type: string
+          example: this is my reason!!
+    ReportToComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        idComment:
+          type: integer
+          example: 2
+        idUser:
+          type: integer
+          example: 1
+        reason:
+          type: string
+          example: this is my reason!!
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    ReportToPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        idPost:
+          type: integer
+          example: 2
+        idUser:
+          type: integer
+          example: 1
+        reason:
+          type: string
+          example: this is my reason!!
+        createdAt:
+          type: string
+          example: "2023-05-19T06:02:28.465Z"
+        updatedAt: 
+          type: string
+          example: "2023-05-19T18:58:46.440Z"
+    MessageDeleteRecord:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Record deleted with id 2
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    NotFount:
+      description: Record not found
+    BadRequest:
+      description: bad input parameter

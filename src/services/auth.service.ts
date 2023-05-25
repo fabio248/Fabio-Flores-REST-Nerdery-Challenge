@@ -1,12 +1,12 @@
 import config from '../config';
 import { PayloadJwt } from '../types/generic';
 import jwt from 'jsonwebtoken';
-import { UserEntry } from '../types/user';
 import { userService } from '../dependencies/dependencies';
 import { hashSync } from 'bcrypt';
+import { User } from '@prisma/client';
 
 export class AuthService {
-  signToken(user: UserEntry): string {
+  signToken(user: User): string {
     const payload: PayloadJwt = {
       sub: user.id,
       role: user.role,
@@ -15,7 +15,7 @@ export class AuthService {
     return accessToken;
   }
 
-  async createAccessToken(user: UserEntry) {
+  async createAccessToken(user: User) {
     const accessToken = this.signToken(user);
     await userService.update(user.id, {
       accessToken: hashSync(accessToken, 10),

@@ -4,6 +4,7 @@ import { UserEntry } from './user';
 export type PayloadJwt = {
   sub: number;
   role: string;
+  iat?: number;
 };
 
 type MakeOptional<Type, Key extends keyof Type> = Omit<Type, Key> &

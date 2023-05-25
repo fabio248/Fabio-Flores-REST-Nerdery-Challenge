@@ -21,10 +21,7 @@ export interface UserEntry {
   updatedAt: Date;
 }
 
-export type UserWithOutSensitiveInfo = MakeOptional<
-  UserEntry,
-  'password' | 'createdAt' | 'updatedAt'
->;
+export type UserWithOutSensitiveInfo = Partial<User>;
 
 export interface CreateUserEntry {
   firstName: string;

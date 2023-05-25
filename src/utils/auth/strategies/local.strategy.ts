@@ -1,14 +1,17 @@
 import { Strategy, VerifyFunction } from 'passport-local';
 import { userService } from '../../../dependencies/dependencies';
-import { UserEntry } from '../../../types/user';
+import { User } from '@prisma/client';
 
 const verifyFunc: VerifyFunction = async (
   email: string,
   password: string,
-  done: (error: any, user?: false | UserEntry) => void,
+  done: (error: any, user?: false | Partial<User>) => void,
 ) => {
   try {
-    const user: UserEntry = await userService.authenticateUser(email, password);
+    const user: Partial<User> = await userService.authenticateUser(
+      email,
+      password,
+    );
     done(null, user);
   } catch (error) {
     done(error, false);
