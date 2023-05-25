@@ -1,12 +1,12 @@
 import { mailerService, userService } from '../dependencies/dependencies';
-import { sendMailConfirmationType } from '../types/mailer';
+import { SendMailConfirmationType } from '../types/mailer';
 
 export const USER_EMAIL_CONFIRMATION = Symbol('USER_EMAIL_CONFIRMATION');
 
 export async function accountEmailConfirmationEvent({
   email,
   id,
-}: sendMailConfirmationType): Promise<void> {
+}: SendMailConfirmationType): Promise<void> {
   const token = await userService.generateConfimationToken(id);
   try {
     await mailerService.sendMail({

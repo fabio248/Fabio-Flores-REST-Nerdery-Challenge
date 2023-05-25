@@ -1,4 +1,4 @@
-/// <reference types="./types/request.d.ts" />
+/// <reference types="./types/express.d.ts" />
 import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';

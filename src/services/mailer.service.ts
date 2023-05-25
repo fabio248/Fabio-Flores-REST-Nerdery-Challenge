@@ -1,9 +1,9 @@
 import config from '../config';
-import { mailBody } from '../types/mailer';
+import { MailBody } from '../types/mailer';
 import { createTransport, getTestMessageUrl } from 'nodemailer';
 
 export class MailerService {
-  async sendMail(bodyMail: mailBody): Promise<{ preview: string | false }> {
+  async sendMail(bodyMail: MailBody): Promise<{ preview: string | false }> {
     const transporter = createTransport({
       host: 'smtp.gmail.com',
       port: 465,
