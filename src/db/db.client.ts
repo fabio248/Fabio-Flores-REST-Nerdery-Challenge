@@ -12,4 +12,4 @@ if (!global.__db) {
 
 dbPrisma = global.__db;
 
-export { dbPrisma };
+export default dbPrisma;

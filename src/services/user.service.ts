@@ -13,17 +13,11 @@ export default class UserService {
   constructor(private readonly userRepo: UserRepositoryInterface) {}
 
   async create(input: CreateUserEntry): Promise<UserWithOutSensitiveInfo> {
-    const isEmailTaken = await this.userRepo.findByEmail(input.email);
+    //Check if email is already taken
+    await this.isEmailAlreadyTaken(input.email);
 
-    if (isEmailTaken) {
-      throw badData('Email already taken');
-    }
-
-    const isUserNameTaken = await this.userRepo.findByUserName(input.userName);
-
-    if (isUserNameTaken) {
-      throw badData('Username already taken');
-    }
+    //Check if userName is already taken
+    await this.isUserNameAlreadyTaken(input.userName);
 
     const user: User = await this.userRepo.create({
       ...input,
@@ -40,7 +34,7 @@ export default class UserService {
     const user = await this.userRepo.findById(id);
 
     if (!user) {
-      throw notFound('User not found');
+      throw notFound('user not found');
     }
 
     const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
@@ -64,7 +58,7 @@ export default class UserService {
 
     //Check if the email isn't already taken
     if (email) {
-      await this.isEmailAlareadyTaken(email);
+      await this.isEmailAlreadyTaken(email);
     }
 
     const user: User = await this.userRepo.update(id, {
@@ -83,7 +77,7 @@ export default class UserService {
 
     await this.userRepo.delete(id);
 
-    return { message: `deleted user with id: ${id} ` };
+    return { message: `deleted user with id: ${id}` };
   }
 
   async generateConfimationToken(id: number): Promise<string> {
@@ -104,18 +98,18 @@ export default class UserService {
     const user: User = await this.findUserWithAllInfo(+payload.sub!);
 
     if (user.verifyToken !== token) {
-      throw unauthorized('Invalid Token');
+      throw unauthorized('invalid token');
     }
 
     if (user.isVerified) {
-      throw badData('User already verified');
+      throw badData('user already verified');
     }
 
     await this.update(user.id, {
       isVerified: true,
     });
 
-    return { message: 'Account confirmated' };
+    return { message: 'account confirmated' };
   }
 
   async authenticateUser(
@@ -156,11 +150,11 @@ export default class UserService {
       'recoveryToken',
     ]);
 
-    if (userWithOutSensitiveInfo.isPublicEmail) {
+    if (!userWithOutSensitiveInfo.isPublicEmail) {
       delete userWithOutSensitiveInfo.email;
     }
 
-    if (userWithOutSensitiveInfo.isPublicName) {
+    if (!userWithOutSensitiveInfo.isPublicName) {
       delete userWithOutSensitiveInfo.firstName;
       delete userWithOutSensitiveInfo.lastName;
     }
@@ -172,13 +166,13 @@ export default class UserService {
     const userWithAllInfo: User | null = await this.userRepo.findById(id);
 
     if (!userWithAllInfo) {
-      throw notFound('User not found');
+      throw notFound('user not found');
     }
 
     return userWithAllInfo;
   }
 
-  private async isEmailAlareadyTaken(email: string): Promise<void> {
+  private async isEmailAlreadyTaken(email: string): Promise<void> {
     const isEmailTaken = await this.userRepo.findByEmail(email);
 
     if (isEmailTaken) {

@@ -139,3 +139,7 @@ build
 
 # SvelteKit build / generate output
 .svelte-kit
+
+jest.config.js
+
+./coverage
