@@ -8,6 +8,7 @@ import { emitter } from '../event';
 import { USER_EMAIL_CONFIRMATION } from '../event/mailer.event';
 import { createNewJsonWithoutFields } from '../utils/general.utils';
 import { User } from '@prisma/client';
+import { messageDelete } from '../types/generic';
 
 export default class UserService {
   constructor(private readonly userRepo: UserRepositoryInterface) {}
@@ -89,7 +90,7 @@ export default class UserService {
     return token;
   }
 
-  async confirmateAccount(token: string): Promise<{ message: string }> {
+  async confirmateAccount(token: string): Promise<messageDelete> {
     const payload: JwtPayload = Jwt.verify(
       token,
       config.jwtSecret,
