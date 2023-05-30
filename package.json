@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@hapi/boom": "10.0.1",
-    "@prisma/client": "4.14.0",
+    "@prisma/client": "4.14.1",
     "bcrypt": "5.1.0",
     "body-parser": "1.20.2",
     "eventemitter2": "^6.4.9",
