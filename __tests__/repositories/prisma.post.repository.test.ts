@@ -1,6 +1,7 @@
-import { Post, type Prisma } from '@prisma/client';
+import { Post } from '@prisma/client';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { prismaMock } from '../utils/mockPrisma';
+import { PostCreateInput } from '../utils/generic';
 
 describe('PrismaPostRepository', () => {
   const id = 1;
@@ -52,7 +53,7 @@ describe('PrismaPostRepository', () => {
       prismaMock.post.create.mockResolvedValueOnce(post as unknown as Post);
 
       const actual = await prismaPostRepository.create(
-        post as unknown as Prisma.PostCreateInput,
+        post as unknown as PostCreateInput,
       );
 
       expect(actual).toHaveProperty('title', post.title);

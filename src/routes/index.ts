@@ -9,5 +9,5 @@ export default function routerApi(app: Application) {
   app.use('/api/v1', router);
   router.use('/accounts', accountRouter);
   router.use('/auth', authRouter);
-  router.use('/post', postRouter);
+  router.use('/posts', postRouter);
 }

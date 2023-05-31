@@ -1,13 +1,14 @@
-import { Post, type Prisma } from '@prisma/client';
-import { BaseRepositoryInteface } from '../repositories/repository.interface';
-import { notFound } from '@hapi/boom';
+import { Post } from '@prisma/client';
+import { PostRepository } from '../repositories/repository.interface';
+import { forbidden, notFound } from '@hapi/boom';
 import { messageDelete } from '../types/generic';
 
 export default class PostService {
-  constructor(private readonly postRepo: BaseRepositoryInteface<Post>) {}
+  constructor(private readonly postRepo: PostRepository) {}
 
-  async create(post: Prisma.PostCreateInput, authorId: number): Promise<Post> {
-    const newPost = await this.postRepo.create({ ...post, author: authorId });
+  async create(post: Partial<Post>, authorId: number): Promise<Post> {
+    const newPost = await this.postRepo.create({ ...post, authorId });
+
     return newPost;
   }
 
@@ -29,18 +30,32 @@ export default class PostService {
     return post!;
   }
 
-  async update(id: number, input: Partial<Post>): Promise<Post> {
+  async update(
+    id: number,
+    input: Partial<Post>,
+    userId: number,
+  ): Promise<Post> {
     //Check if exist the post
-    await this.findOne(id);
+    const post = await this.findOne(id);
+
+    if (post.authorId !== userId) {
+      throw forbidden('it is not your post');
+    }
 
     const updatedPost: Post = await this.postRepo.update(id, input);
+
     return updatedPost;
   }
-  async delete(id: number): Promise<messageDelete> {
-    await this.findOne(id);
 
-    await this.postRepo.delete(id);
+  async delete(postId: number, userId: number): Promise<messageDelete> {
+    const post = await this.findOne(postId);
 
-    return { message: `deleted user with id: ${id}` };
+    if (post.authorId !== userId) {
+      throw forbidden('it is not your post');
+    }
+
+    await this.postRepo.delete(postId);
+
+    return { message: `deleted user with id: ${postId}` };
   }
 }

@@ -1,21 +1,17 @@
-import { Post, type Prisma } from '@prisma/client';
+import { Post } from '@prisma/client';
 import PostService from '../../src/services/post.service';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { PartialMock } from '../utils/generic';
-import { BaseRepositoryInteface } from '../../src/repositories/repository.interface';
-import { notFound } from '@hapi/boom';
+import { forbidden, notFound } from '@hapi/boom';
+import { buildPost } from '../utils/generate';
 
 describe('PostService', () => {
   let postService: PostService;
   let mockPostRepository: PartialMock<PrismaPostRepository>;
   const authorId = 5;
-  let post: Prisma.PostCreateInput = {
-    title: 'Sample post',
-    description: 'Sample description',
-    author: authorId as Prisma.UserCreateNestedOneWithoutPostsInput,
-    isDraft: false,
-  };
-  const errorNotFoundPost = notFound('post not found');
+  let post = buildPost({ authorId, isDraft: false }) as Post;
+  const notFoundError = notFound('post not found');
+  const forbiddenError = forbidden('it is not your post');
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -25,7 +21,7 @@ describe('PostService', () => {
       expect.assertions(4);
       mockPostRepository = { create: jest.fn().mockReturnValueOnce(post) };
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
       const actual = await postService.create(post, authorId);
@@ -45,7 +41,7 @@ describe('PostService', () => {
         all: jest.fn().mockReturnValueOnce([post, post, postIsDraft]),
       };
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
       const actual = await postService.all();
@@ -64,7 +60,7 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
       const actual = await postService.findOne(id);
@@ -84,12 +80,12 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
       const actual = () => postService.findOne(id);
 
-      expect(actual).rejects.toEqual(errorNotFoundPost);
+      expect(actual).rejects.toEqual(notFoundError);
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockPostRepository.findById).toHaveBeenCalledWith(id);
     });
@@ -102,7 +98,7 @@ describe('PostService', () => {
       title: 'change title',
       id,
     };
-    it('should edit info of a post', async () => {
+    it('should update a post only if owned by the user', async () => {
       expect.assertions(8);
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce(post),
@@ -110,10 +106,14 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
-      const actual = await postService.update(id, updatePost as Partial<Post>);
+      const actual = await postService.update(
+        id,
+        updatePost as Partial<Post>,
+        authorId,
+      );
 
       expect(actual).toHaveProperty('title', updatePost.title);
       expect(actual).toHaveProperty('isDraft', updatePost.isDraft);
@@ -125,7 +125,27 @@ describe('PostService', () => {
       expect(mockPostRepository.update).toHaveBeenCalledWith(id, updatePost);
     });
 
-    it("throw an error when post doen't exists", async () => {
+    it('throw an error if the post is not owned by the user', async () => {
+      expect.assertions(4);
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce({ ...post, authorId: 1 }),
+        update: jest.fn().mockReturnValueOnce(updatePost),
+      };
+
+      postService = new PostService(
+        mockPostRepository as unknown as PrismaPostRepository,
+      );
+
+      const actual = () =>
+        postService.update(id, updatePost as Partial<Post>, authorId);
+
+      expect(actual).rejects.toEqual(forbiddenError);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(id);
+      expect(mockPostRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("throw an error when post doens't exists", async () => {
       expect.assertions(4);
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce(null),
@@ -133,12 +153,13 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
-      const actual = () => postService.update(id, updatePost as Partial<Post>);
+      const actual = () =>
+        postService.update(id, updatePost as Partial<Post>, authorId);
 
-      expect(actual).rejects.toEqual(errorNotFoundPost);
+      expect(actual).rejects.toEqual(notFoundError);
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockPostRepository.findById).toHaveBeenCalledWith(id);
       expect(mockPostRepository.update).not.toHaveBeenCalled();
@@ -146,8 +167,8 @@ describe('PostService', () => {
   });
 
   describe('delete', () => {
-    const id = 1;
-    const response = { message: `deleted user with id: ${id}` };
+    const postId = 1;
+    const response = { message: `deleted user with id: ${postId}` };
     it('should delele an exists post and return their id', async () => {
       expect.assertions(5);
       mockPostRepository = {
@@ -156,17 +177,35 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
-      const actual = await postService.delete(id);
+      const actual = await postService.delete(postId, authorId);
 
       expect(actual).toEqual(response);
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
-      expect(mockPostRepository.findById).toHaveBeenCalledWith(id);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(postId);
       expect(mockPostRepository.delete).toHaveBeenCalledTimes(1);
-      expect(mockPostRepository.delete).toHaveBeenCalledWith(id);
+      expect(mockPostRepository.delete).toHaveBeenCalledWith(postId);
     });
 
+    it('throw an error if the post is not owned by the user', async () => {
+      // expect.assertions(8);
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce({ ...post, authorId: 1 }),
+        delete: jest.fn().mockReturnValueOnce(post),
+      };
+
+      postService = new PostService(
+        mockPostRepository as unknown as PrismaPostRepository,
+      );
+
+      const actual = () => postService.delete(postId, authorId);
+
+      expect(actual).rejects.toEqual(forbiddenError);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(postId);
+      expect(mockPostRepository.delete).not.toHaveBeenCalled();
+    });
     it('throw an error when post does not exits', async () => {
       expect.assertions(4);
       mockPostRepository = {
@@ -175,14 +214,14 @@ describe('PostService', () => {
       };
 
       postService = new PostService(
-        mockPostRepository as unknown as BaseRepositoryInteface<Post>,
+        mockPostRepository as unknown as PrismaPostRepository,
       );
 
-      const actual = () => postService.delete(id);
+      const actual = () => postService.delete(postId, authorId);
 
-      expect(actual).rejects.toEqual(errorNotFoundPost);
+      expect(actual).rejects.toEqual(notFoundError);
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
-      expect(mockPostRepository.findById).toHaveBeenCalledWith(id);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(postId);
       expect(mockPostRepository.delete).not.toHaveBeenCalled();
     });
   });

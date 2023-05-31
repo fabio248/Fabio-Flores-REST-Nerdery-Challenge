@@ -43,6 +43,7 @@ model Comment {
   body          String
   isDraft       Boolean   @default(false) @map("is_draft")
   amountLike    Int?      @default(0) @map("amount_like")
+  amountDislike Int?      @default(0) @map("amount_dislike")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   
@@ -71,13 +72,14 @@ model UsersLikeComments {
 } 
 
 model Post {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String
-  isDraft     Boolean   @default(false) @map("is_draft")
-  amountLike  Int?      @default(0) @map("amount_like")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String
+  isDraft        Boolean   @default(false) @map("is_draft")
+  amountLike     Int?      @default(0) @map("amount_like")
+  amountDislike  Int?      @default(0) @map("amount_dislike")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   ///relations
   author    User     @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
