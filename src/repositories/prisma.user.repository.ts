@@ -1,8 +1,8 @@
 import { PrismaClient, User } from '@prisma/client';
-import { UserRepositoryInterface } from './repository.interface';
+import { UserRepository } from './repository.interface';
 import { CreateUserEntry, UserEntry } from '../types/user';
 
-export default class PrismaUserRepository implements UserRepositoryInterface {
+export default class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   all(): Promise<User[]> {

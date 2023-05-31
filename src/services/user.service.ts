@@ -1,4 +1,4 @@
-import { UserRepositoryInterface } from '../repositories/repository.interface';
+import { UserRepository } from '../repositories/repository.interface';
 import { CreateUserEntry, UserWithOutSensitiveInfo } from '../types/user';
 import { compareSync, hashSync } from 'bcrypt';
 import { badData, notFound, unauthorized } from '@hapi/boom';
@@ -11,7 +11,7 @@ import { User } from '@prisma/client';
 import { messageDelete } from '../types/generic';
 
 export default class UserService {
-  constructor(private readonly userRepo: UserRepositoryInterface) {}
+  constructor(private readonly userRepo: UserRepository) {}
 
   async create(input: CreateUserEntry): Promise<UserWithOutSensitiveInfo> {
     //Check if email is already taken

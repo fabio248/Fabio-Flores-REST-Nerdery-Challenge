@@ -3,7 +3,7 @@ import PrismaUserRepository from '../../src/repositories/prisma.user.repository'
 import { CreateUserEntry } from '../../src/types/user';
 import { emitter } from '../../src/event';
 import { badData, notFound, unauthorized } from '@hapi/boom';
-import { UserRepositoryInterface } from '../../src/repositories/repository.interface';
+import { UserRepository } from '../../src/repositories/repository.interface';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { PartialMock } from '../utils/generic';
@@ -122,7 +122,7 @@ describe('UserService', () => {
         findById: jest.fn().mockReturnValueOnce({ ...user, id }),
       };
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const actual = await userService.findOne(id);
@@ -143,7 +143,7 @@ describe('UserService', () => {
         findById: jest.fn().mockReturnValueOnce(null),
       };
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const actual = () => userService.findOne(id);
@@ -167,7 +167,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const actual = await userService.update(id, { firstName: newFirstName });
@@ -194,7 +194,7 @@ describe('UserService', () => {
       const spyHashSyncBcrypt = jest.spyOn(bcrypt, 'hashSync');
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const actual = await userService.update(id, { password: newPassword });
@@ -220,7 +220,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = badData('email already taken');
@@ -243,7 +243,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = badData('username already taken');
@@ -262,7 +262,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = notFound('user not found');
@@ -283,7 +283,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       const expected = { message: `deleted user with id: ${id}` };
 
@@ -300,7 +300,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = notFound('user not found');
@@ -324,7 +324,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const actual = await userService.generateConfimationToken(1);
@@ -352,7 +352,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       const expected = { message: 'account confirmated' };
 
@@ -373,7 +373,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = unauthorized('invalid token');
@@ -394,7 +394,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
 
       const expected = badData('user already verified');
@@ -410,7 +410,7 @@ describe('UserService', () => {
       };
 
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       const expected = unauthorized('user not found');
 
@@ -430,7 +430,7 @@ describe('UserService', () => {
         findByEmail: jest.fn().mockReturnValueOnce(user),
       };
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       spyCompareSyncBcrypt.mockImplementation(() => true);
 
@@ -446,7 +446,7 @@ describe('UserService', () => {
         findByEmail: jest.fn().mockReturnValueOnce(null),
       };
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       const expected = unauthorized('email or password invalid');
 
@@ -462,7 +462,7 @@ describe('UserService', () => {
         findByEmail: jest.fn().mockReturnValueOnce(user),
       };
       userService = new UserService(
-        prismaUserRepoMock as unknown as UserRepositoryInterface,
+        prismaUserRepoMock as unknown as UserRepository,
       );
       spyCompareSyncBcrypt.mockImplementation(() => false);
       const expected = unauthorized('email or password invalid');

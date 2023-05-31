@@ -5,7 +5,8 @@ import { User } from '@prisma/client';
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
-    res.status(200).json(await authService.createAccessToken(user as User));
+    const response = await authService.createAccessToken(user as User);
+    res.status(200).json({ accessToken: response });
   } catch (error) {
     next(error);
   }
