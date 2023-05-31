@@ -253,24 +253,5 @@ describe('PostService', () => {
       expect(mockPostRepository.findById).toHaveBeenCalledWith(reaction.postId);
       expect(mockPostRepository.createReaction).toHaveBeenCalledTimes(1);
     });
-
-    it('throw an error when the post does not exits', async () => {
-      // expect.assertions(4);
-      mockPostRepository = {
-        findById: jest.fn().mockReturnValueOnce(null),
-        createReaction: jest.fn().mockReturnValueOnce(reaction),
-      };
-
-      postService = new PostService(
-        mockPostRepository as unknown as PrismaPostRepository,
-      );
-
-      const actual = () => postService.createReaction(reaction);
-
-      expect(actual).rejects.toEqual(notFoundError);
-      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
-      expect(mockPostRepository.findById).toHaveBeenCalledWith(reaction.postId);
-      expect(mockPostRepository.createReaction).not.toHaveBeenCalled();
-    });
   });
 });

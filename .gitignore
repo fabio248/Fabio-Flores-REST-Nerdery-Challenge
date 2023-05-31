@@ -143,3 +143,5 @@ build
 jest.config.js
 
 ./coverage
+
+postgres_data/

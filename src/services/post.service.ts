@@ -61,11 +61,7 @@ export default class PostService {
   }
 
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
-    const post = await this.findOne(input.postId);
-
-    if (!post) {
-      throw notFound('post not found');
-    }
+    await this.findOne(input.postId);
 
     const reaction = await this.postRepo.createReaction(input);
     return reaction;

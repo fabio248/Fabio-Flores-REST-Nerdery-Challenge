@@ -4,17 +4,21 @@ import PostService from '../../src/services/post.service';
 import {
   buildNext,
   buildPost,
+  buildReaction,
   buildReq,
   buildRes,
   buildUser,
 } from '../utils/generate';
 import { PartialMock } from '../utils/generic';
 import { Post } from '@prisma/client';
+import { CreateUsersLikePosts } from '../../src/types/post';
 
 describe('PostController', () => {
   let mockPostService: PartialMock<PostService>;
   let postController: PostController;
   const error = new Error('unexpected error');
+  const successfulStatus = 200;
+  const creationStatus = 201;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -42,14 +46,12 @@ describe('PostController', () => {
         data: post,
       };
 
-      const expectStatus = 201;
-
       await postController.create(req, res, next);
 
       expect(res.json).toHaveBeenCalledWith(expected);
       expect(res.json).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(expectStatus);
+      expect(res.status).toHaveBeenCalledWith(creationStatus);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -94,7 +96,6 @@ describe('PostController', () => {
         message: 'post found',
         data: post,
       };
-      const expectStatus = 200;
 
       await postController.findOne(req, res, next);
 
@@ -102,7 +103,7 @@ describe('PostController', () => {
       expect(res.json).toHaveBeenCalledTimes(1);
       expect(res.json).toHaveBeenCalledWith(expected);
       expect(res.status).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(expectStatus);
+      expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
 
     it('when happen an error invoke next funtion with the error', async () => {
@@ -148,7 +149,6 @@ describe('PostController', () => {
         message: 'post updated',
         data: post,
       };
-      const expectStatus = 200;
 
       await postController.update(req, res, next);
 
@@ -160,7 +160,7 @@ describe('PostController', () => {
       expect(res.json).toHaveBeenCalledTimes(1);
       expect(res.json).toHaveBeenCalledWith(expected);
       expect(res.status).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(expectStatus);
+      expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
     it('when happen an error invoke next funtion with the error', async () => {
       expect.assertions(5);
@@ -199,7 +199,6 @@ describe('PostController', () => {
       const expected = {
         message: `post updated with id: ${postId}`,
       };
-      const expectStatus = 200;
 
       await postController.delete(req, res, next);
 
@@ -207,7 +206,7 @@ describe('PostController', () => {
       expect(res.json).toHaveBeenCalledTimes(1);
       expect(res.json).toHaveBeenCalledWith(expected);
       expect(res.status).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(expectStatus);
+      expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
 
     it('when happen an error invoke next funtion with the error', async () => {
@@ -249,7 +248,6 @@ describe('PostController', () => {
       );
 
       const expected = { message: 'posts found', data: listPost };
-      const expectStatus = 200;
 
       await postController.findMany(req, res, next);
 
@@ -257,7 +255,7 @@ describe('PostController', () => {
       expect(res.json).toHaveBeenCalledTimes(1);
       expect(res.json).toHaveBeenCalledWith(expected);
       expect(res.status).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(expectStatus);
+      expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
 
     it('when happen an error invoke next funtion with the error', async () => {
@@ -272,6 +270,54 @@ describe('PostController', () => {
       await postController.findMany(req, res, next);
 
       expect(mockPostService.all).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.json).not.toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createReaction', () => {
+    const post = buildPost({ id: 2 }) as Post;
+    const reaction = buildReaction({ postId: post.id }) as CreateUsersLikePosts;
+    const res = buildRes();
+    const next = buildNext();
+    const req = buildReq({
+      user: buildUser({ sub: reaction.userId }),
+      params: { postId: post.id },
+      body: { type: reaction.type },
+    }) as unknown as Request;
+    it('should create reaction to a post', async () => {
+      expect.assertions(6);
+      mockPostService = {
+        createReaction: jest.fn().mockResolvedValueOnce(reaction),
+      };
+      postController = new PostController(
+        mockPostService as unknown as PostService,
+      );
+      const expected = { message: 'reaction created', data: reaction };
+
+      await postController.createReaction(req, res, next);
+
+      expect(mockPostService.createReaction).toHaveBeenCalledTimes(1);
+      expect(mockPostService.createReaction).toHaveBeenCalledWith(reaction);
+      expect(res.json).toHaveBeenCalledTimes(1);
+      expect(res.json).toHaveBeenCalledWith(expected);
+      expect(res.status).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledWith(creationStatus);
+    });
+    it('when happen an error invoke next funtion with the error', async () => {
+      expect.assertions(5);
+      mockPostService = {
+        createReaction: jest.fn().mockRejectedValueOnce(error),
+      };
+      postController = new PostController(
+        mockPostService as unknown as PostService,
+      );
+
+      await postController.createReaction(req, res, next);
+
+      expect(mockPostService.createReaction).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
       expect(res.json).not.toHaveBeenCalled();

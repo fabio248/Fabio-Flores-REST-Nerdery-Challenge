@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 import PostService from '../services/post.service';
 import { Post } from '@prisma/client';
+import { CreateUsersLikePosts } from '../types/post';
 
 export default class PostController {
   constructor(private readonly postService: PostService) {}
@@ -61,6 +62,24 @@ export default class PostController {
       const listPost: Post[] = await this.postService.all();
 
       res.status(200).json({ message: 'posts found', data: listPost });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async createReaction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const user = req.user as JwtPayload;
+      const body = req.body;
+      const input: CreateUsersLikePosts = {
+        postId: +postId,
+        userId: +user.sub!,
+        type: body.type,
+      };
+
+      const newReaction = await this.postService.createReaction(input);
+
+      res.status(201).json({ message: 'reaction created', data: newReaction });
     } catch (error) {
       next(error);
     }
