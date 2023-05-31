@@ -1,9 +1,14 @@
 import { faker } from '@faker-js/faker';
 import { Response } from 'express';
+import { CreateUsersLikePosts } from '../../src/types/post';
+import { Post } from '@prisma/client';
 
 // const getUsername = faker.internet.userName;
 const getId = faker.number.int;
 const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
+const getTypeReaction = faker.helpers.arrayElement(['LIKE', 'DISLIKE']) as
+  | 'LIKE'
+  | 'DISLIKE';
 
 const getTitlePost = faker.string.alpha({ length: { min: 10, max: 50 } });
 const getDescriptionPost = faker.commerce.productDescription();
@@ -34,7 +39,7 @@ function buildUser({ ...overrides } = {}) {
   };
 }
 
-function buildPost({ ...overrides } = {}) {
+function buildPost({ ...overrides } = {}): Partial<Post> {
   return {
     title: getTitlePost,
     description: getDescriptionPost,
@@ -42,4 +47,13 @@ function buildPost({ ...overrides } = {}) {
   };
 }
 
-export { buildNext, buildReq, buildRes, buildUser, buildPost };
+function buildReaction({ ...overrides } = {}): CreateUsersLikePosts | object {
+  return {
+    type: getTypeReaction,
+    userId: getId(),
+    postId: getId(),
+    ...overrides,
+  };
+}
+
+export { buildNext, buildReq, buildRes, buildUser, buildPost, buildReaction };

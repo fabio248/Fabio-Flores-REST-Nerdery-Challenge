@@ -1,16 +1,13 @@
-import { Post } from '@prisma/client';
+import { Post, UsersLikePosts } from '@prisma/client';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { prismaMock } from '../utils/mockPrisma';
 import { PostCreateInput } from '../utils/generic';
-
+import { buildPost, buildReaction } from '../utils/generate';
+import { CreateUsersLikePosts } from '../../src/types/post';
 describe('PrismaPostRepository', () => {
   const id = 1;
   let prismaPostRepository: PrismaPostRepository;
-  const post = {
-    title: 'Sample title',
-    description: 'Sample description for a post',
-    isDraft: false,
-  };
+  const post = buildPost({ isDraft: false }) as Post;
   beforeEach(() => {
     prismaPostRepository = new PrismaPostRepository(prismaMock);
   });
@@ -97,6 +94,75 @@ describe('PrismaPostRepository', () => {
       expect(actual).toHaveProperty('description', post.description);
       expect(actual).toHaveProperty('isDraft', post.isDraft);
       expect(prismaMock.post.delete).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('createReaction', () => {
+    const createReactionInput = buildReaction() as CreateUsersLikePosts;
+    const post = buildPost({ id: createReactionInput.postId });
+    it('should create a reaction in post', async () => {
+      prismaMock.usersLikePosts.create.mockResolvedValueOnce(
+        createReactionInput as UsersLikePosts,
+      );
+      prismaMock.post.findUnique.mockResolvedValueOnce(post as Post);
+
+      const actual = await prismaPostRepository.createReaction(
+        createReactionInput,
+      );
+
+      expect(actual).toHaveProperty('type', createReactionInput.type);
+      expect(actual).toHaveProperty('userId', createReactionInput.userId);
+      expect(actual).toHaveProperty('postId', createReactionInput.postId);
+      expect(prismaMock.usersLikePosts.create).toHaveBeenCalledTimes(1);
+      expect(prismaMock.usersLikePosts.create).toHaveBeenCalledWith({
+        data: createReactionInput,
+      });
+      expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('updateAmountReaction', () => {
+    it('when type reaction like increment amount likes', async () => {
+      const createReactionInput = buildReaction({
+        type: 'LIKE',
+      }) as CreateUsersLikePosts;
+      const post = buildPost({
+        id: createReactionInput.postId,
+        amountLike: 3,
+      }) as Post;
+
+      prismaMock.post.findUnique.mockResolvedValueOnce(post);
+
+      const expectedCalled = {
+        where: { id: post.id },
+        data: { amountLike: post.amountLike! + 1 },
+      };
+      await prismaPostRepository.updateAmountReaction(createReactionInput);
+
+      expect(prismaMock.post.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
+      expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
+    });
+    it('when type reaction dislike increment amount dislikes', async () => {
+      const createReactionInput = buildReaction({
+        type: 'DISLIKE',
+      }) as CreateUsersLikePosts;
+      const post = buildPost({
+        id: createReactionInput.postId,
+        amountDislike: 3,
+      }) as Post;
+
+      prismaMock.post.findUnique.mockResolvedValueOnce(post);
+
+      const expectedCalled = {
+        where: { id: post.id },
+        data: { amountDislike: post.amountDislike! + 1 },
+      };
+      await prismaPostRepository.updateAmountReaction(createReactionInput);
+
+      expect(prismaMock.post.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
+      expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
     });
   });
 });

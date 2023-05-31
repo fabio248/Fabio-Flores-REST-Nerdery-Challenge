@@ -1,7 +1,8 @@
-import { Post } from '@prisma/client';
+import { Post, UsersLikePosts } from '@prisma/client';
 import { PostRepository } from '../repositories/repository.interface';
 import { forbidden, notFound } from '@hapi/boom';
 import { messageDelete } from '../types/generic';
+import { CreateUsersLikePosts } from '../types/post';
 
 export default class PostService {
   constructor(private readonly postRepo: PostRepository) {}
@@ -57,5 +58,16 @@ export default class PostService {
     await this.postRepo.delete(postId);
 
     return { message: `deleted user with id: ${postId}` };
+  }
+
+  async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
+    const post = await this.findOne(input.postId);
+
+    if (!post) {
+      throw notFound('post not found');
+    }
+
+    const reaction = await this.postRepo.createReaction(input);
+    return reaction;
   }
 }

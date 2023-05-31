@@ -3,7 +3,8 @@ import PostService from '../../src/services/post.service';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { PartialMock } from '../utils/generic';
 import { forbidden, notFound } from '@hapi/boom';
-import { buildPost } from '../utils/generate';
+import { buildPost, buildReaction } from '../utils/generate';
+import { CreateUsersLikePosts } from '../../src/types/post';
 
 describe('PostService', () => {
   let postService: PostService;
@@ -223,6 +224,53 @@ describe('PostService', () => {
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockPostRepository.findById).toHaveBeenCalledWith(postId);
       expect(mockPostRepository.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createReaction', () => {
+    const reaction = buildReaction() as CreateUsersLikePosts;
+    it('should create a new reaction to a post', async () => {
+      expect.assertions(6);
+      const post = buildPost({
+        id: reaction.postId,
+        authorId: reaction.userId,
+      });
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce(post),
+        createReaction: jest.fn().mockReturnValueOnce(reaction),
+      };
+
+      postService = new PostService(
+        mockPostRepository as unknown as PrismaPostRepository,
+      );
+
+      const actual = await postService.createReaction(reaction);
+
+      expect(actual).toHaveProperty('postId', post.id);
+      expect(actual).toHaveProperty('userId', post.authorId);
+      expect(actual).toHaveProperty('type', reaction.type);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(reaction.postId);
+      expect(mockPostRepository.createReaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('throw an error when the post does not exits', async () => {
+      // expect.assertions(4);
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce(null),
+        createReaction: jest.fn().mockReturnValueOnce(reaction),
+      };
+
+      postService = new PostService(
+        mockPostRepository as unknown as PrismaPostRepository,
+      );
+
+      const actual = () => postService.createReaction(reaction);
+
+      expect(actual).rejects.toEqual(notFoundError);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.findById).toHaveBeenCalledWith(reaction.postId);
+      expect(mockPostRepository.createReaction).not.toHaveBeenCalled();
     });
   });
 });

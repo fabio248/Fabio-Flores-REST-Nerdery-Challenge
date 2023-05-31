@@ -14,5 +14,6 @@ export interface UserRepository extends BaseRepository<User> {
 }
 
 export interface PostRepository extends BaseRepository<Post> {
-  createReaction(input: object): Promise<UsersLikePosts | null>;
+  createReaction(input: object): Promise<UsersLikePosts>;
+  updateAmountReaction(input: object): Promise<void>;
 }
