@@ -3,6 +3,7 @@ import passport from 'passport';
 import { validateSchemaHandler } from '../middleware/validateSchema.middleware';
 import {
   createPostSchema,
+  createReactioPostSchema,
   getPostSchema,
   updatePostSchema,
 } from '../schemas/post.schema';
@@ -36,4 +37,12 @@ postRouter
   .delete(
     [validateSchemaHandler(getPostSchema, 'params')],
     postController.delete.bind(postController),
+  );
+
+postRouter
+  .route('/:postId/likes')
+  .all(passport.authenticate('jwt', { session: false }))
+  .post(
+    validateSchemaHandler(createReactioPostSchema, 'body'),
+    postController.createReaction.bind(postController),
   );

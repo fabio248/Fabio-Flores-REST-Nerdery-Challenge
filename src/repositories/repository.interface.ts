@@ -16,4 +16,8 @@ export interface UserRepository extends BaseRepository<User> {
 export interface PostRepository extends BaseRepository<Post> {
   createReaction(input: object): Promise<UsersLikePosts>;
   updateAmountReaction(input: object): Promise<void>;
+  findReactionByUserIdAndPostId(
+    postId: number,
+    authorId: number,
+  ): Promise<UsersLikePosts | null>;
 }

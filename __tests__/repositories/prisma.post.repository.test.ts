@@ -4,6 +4,7 @@ import { prismaMock } from '../utils/mockPrisma';
 import { PostCreateInput } from '../utils/generic';
 import { buildPost, buildReaction } from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
+
 describe('PrismaPostRepository', () => {
   const id = 1;
   let prismaPostRepository: PrismaPostRepository;
@@ -163,6 +164,25 @@ describe('PrismaPostRepository', () => {
       expect(prismaMock.post.update).toHaveBeenCalledTimes(1);
       expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
       expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findReactionByUserIdAndPostId', () => {
+    const reaction = buildReaction() as CreateUsersLikePosts;
+    it('should return a reaction', async () => {
+      prismaMock.usersLikePosts.findFirst.mockResolvedValueOnce(
+        reaction as UsersLikePosts,
+      );
+
+      const actual = await prismaPostRepository.findReactionByUserIdAndPostId(
+        reaction.postId,
+        reaction.userId,
+      );
+
+      expect(actual).toHaveProperty('type', reaction.type);
+      expect(actual).toHaveProperty('postId', reaction.postId);
+      expect(actual).toHaveProperty('userId', reaction.userId);
+      expect(prismaMock.usersLikePosts.findFirst).toHaveBeenCalledTimes(1);
     });
   });
 });

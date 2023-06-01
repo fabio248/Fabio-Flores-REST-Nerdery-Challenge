@@ -1,6 +1,6 @@
 import { Post, UsersLikePosts } from '@prisma/client';
 import { PostRepository } from '../repositories/repository.interface';
-import { forbidden, notFound } from '@hapi/boom';
+import { badData, forbidden, notFound } from '@hapi/boom';
 import { messageDelete } from '../types/generic';
 import { CreateUsersLikePosts } from '../types/post';
 
@@ -63,7 +63,23 @@ export default class PostService {
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
     await this.findOne(input.postId);
 
-    const reaction = await this.postRepo.createReaction(input);
-    return reaction;
+    const reaction = await this.findReactionByUserAndPost(
+      input.postId,
+      input.userId,
+    );
+
+    if (reaction) {
+      throw badData('You have already liked the post');
+    }
+
+    const newReaction = await this.postRepo.createReaction(input);
+    return newReaction;
+  }
+
+  async findReactionByUserAndPost(
+    postId: number,
+    userId: number,
+  ): Promise<UsersLikePosts | null> {
+    return this.postRepo.findReactionByUserIdAndPostId(postId, userId);
   }
 }

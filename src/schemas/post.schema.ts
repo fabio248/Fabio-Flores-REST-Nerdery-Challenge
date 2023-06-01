@@ -5,6 +5,7 @@ const authorId = Joi.number();
 const title = Joi.string();
 const description = Joi.string();
 const isDraft = Joi.boolean().default(false);
+const type = Joi.string().valid('LIKE', 'DISLIKE');
 
 export const createPostSchema = Joi.object({
   id,
@@ -23,3 +24,7 @@ export const updatePostSchema = Joi.object({
   description,
   isDraft,
 }).min(1);
+
+export const createReactioPostSchema = Joi.object({
+  type: type.required(),
+});

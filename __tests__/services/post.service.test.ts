@@ -2,15 +2,17 @@ import { Post } from '@prisma/client';
 import PostService from '../../src/services/post.service';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { PartialMock } from '../utils/generic';
-import { forbidden, notFound } from '@hapi/boom';
+import { badData, forbidden, notFound } from '@hapi/boom';
 import { buildPost, buildReaction } from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
+import { PostRepository } from '../../src/repositories/repository.interface';
 
 describe('PostService', () => {
   let postService: PostService;
   let mockPostRepository: PartialMock<PrismaPostRepository>;
   const authorId = 5;
   let post = buildPost({ authorId, isDraft: false }) as Post;
+  let reaction = buildReaction() as CreateUsersLikePosts;
   const notFoundError = notFound('post not found');
   const forbiddenError = forbidden('it is not your post');
 
@@ -228,7 +230,6 @@ describe('PostService', () => {
   });
 
   describe('createReaction', () => {
-    const reaction = buildReaction() as CreateUsersLikePosts;
     it('should create a new reaction to a post', async () => {
       expect.assertions(6);
       const post = buildPost({
@@ -238,6 +239,7 @@ describe('PostService', () => {
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce(post),
         createReaction: jest.fn().mockReturnValueOnce(reaction),
+        findReactionByUserIdAndPostId: jest.fn().mockReturnValueOnce(null),
       };
 
       postService = new PostService(
@@ -252,6 +254,50 @@ describe('PostService', () => {
       expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockPostRepository.findById).toHaveBeenCalledWith(reaction.postId);
       expect(mockPostRepository.createReaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('throw an error when the user has already liked the post', async () => {
+      const post = buildPost({
+        id: reaction.postId,
+        authorId: reaction.userId,
+      });
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce(post),
+        findReactionByUserIdAndPostId: jest.fn().mockReturnValueOnce(reaction),
+        createReaction: jest.fn().mockReturnValueOnce(reaction),
+      };
+
+      postService = new PostService(
+        mockPostRepository as unknown as PrismaPostRepository,
+      );
+
+      const expectedError = badData('You have already liked the post');
+
+      const actual = () => postService.createReaction(reaction);
+
+      expect(actual).rejects.toEqual(expectedError);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.createReaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findReactionByUserAndPost', () => {
+    it('should return a reaction search by user and post', async () => {
+      mockPostRepository = {
+        findReactionByUserIdAndPostId: jest.fn().mockReturnValueOnce(reaction),
+      };
+
+      postService = new PostService(mockPostRepository as PostRepository);
+
+      const actual = await postService.findReactionByUserAndPost(
+        reaction.postId,
+        reaction.userId,
+      );
+
+      expect(actual).toEqual(reaction);
+      expect(
+        mockPostRepository.findReactionByUserIdAndPostId,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

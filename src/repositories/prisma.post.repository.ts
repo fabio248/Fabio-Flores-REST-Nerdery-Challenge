@@ -12,14 +12,14 @@ export default class PrismaPostRepository implements PostRepository {
   async updateAmountReaction(input: CreateUsersLikePosts): Promise<void> {
     const post = await this.findById(input.postId);
     if (input.type === 'LIKE') {
-      this.prisma.post.update({
+      await this.prisma.post.update({
         where: { id: input.postId },
         data: { amountLike: post!.amountLike! + 1 },
       });
     }
 
     if (input.type === 'DISLIKE') {
-      this.prisma.post.update({
+      await this.prisma.post.update({
         where: { id: input.postId },
         data: { amountDislike: post!.amountDislike! + 1 },
       });
@@ -28,7 +28,7 @@ export default class PrismaPostRepository implements PostRepository {
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
     await this.updateAmountReaction(input);
 
-    return this.prisma.usersLikePosts.create({
+    return await this.prisma.usersLikePosts.create({
       data: input as Prisma.UsersLikePostsCreateInput,
     });
   }
@@ -55,5 +55,16 @@ export default class PrismaPostRepository implements PostRepository {
   }
   delete(id: number): Promise<Post> {
     return this.prisma.post.delete({ where: { id } });
+  }
+  findReactionByUserIdAndPostId(
+    postId: number,
+    userId: number,
+  ): Promise<UsersLikePosts | null> {
+    return this.prisma.usersLikePosts.findFirst({
+      where: {
+        userId,
+        postId,
+      },
+    });
   }
 }
