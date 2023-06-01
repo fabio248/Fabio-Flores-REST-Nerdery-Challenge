@@ -6,13 +6,13 @@ import {
 } from '../../src/types/post';
 import { Post } from '@prisma/client';
 
-export const getUsername = faker.internet.userName;
-export const getId = faker.number.int;
-export const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
-export const getTypeReaction = faker.helpers.arrayElement([
-  'LIKE',
-  'DISLIKE',
-]) as 'LIKE' | 'DISLIKE';
+const getUsername = faker.internet.userName;
+const getId = faker.number.int;
+const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
+const getTypeReaction = faker.helpers.arrayElement(['LIKE', 'DISLIKE']) as
+  | 'LIKE'
+  | 'DISLIKE';
+const getAmountReaction = faker.number.int({ min: 5, max: 500 });
 
 export const getTitlePost = faker.string.alpha({
   length: { min: 10, max: 50 },
@@ -91,4 +91,9 @@ export {
   buildReactionPost,
   buildComment,
   buildReactionComment,
+  getUsername,
+  getId,
+  getRole,
+  getTypeReaction,
+  getAmountReaction,
 };

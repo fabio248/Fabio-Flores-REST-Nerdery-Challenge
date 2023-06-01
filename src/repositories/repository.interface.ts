@@ -1,4 +1,10 @@
-import { Post, User, UsersLikePosts } from '@prisma/client';
+import {
+  Comment,
+  Post,
+  User,
+  UsersLikeComments,
+  UsersLikePosts,
+} from '@prisma/client';
 
 export interface BaseRepository<T> {
   all(): Promise<T[]>;
@@ -21,4 +27,14 @@ export interface PostRepository extends BaseRepository<Post> {
     authorId: number,
   ): Promise<UsersLikePosts | null>;
   findPostWithLikesAndUser(postId: number): Promise<Post | null>;
+}
+
+export interface CommentRepository extends BaseRepository<Comment> {
+  createReaction(input: object): Promise<UsersLikeComments>;
+  updateAmountReaction(input: object): Promise<void>;
+  findReactionByUserIdAndCommentId(
+    commentId: number,
+    userId: number,
+  ): Promise<UsersLikeComments | null>;
+  findCommentWithLikesAndUser(commentId: number): Promise<Comment | null>;
 }
