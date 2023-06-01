@@ -2,7 +2,12 @@ import { Post, UsersLikePosts } from '@prisma/client';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { prismaMock } from '../utils/mockPrisma';
 import { PostCreateInput } from '../utils/generic';
-import { buildPost, buildReactionPost, getId } from '../utils/generate';
+import {
+  buildPost,
+  buildReactionPost,
+  getAmountReaction,
+  getId,
+} from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
 
 describe('PrismaPostRepository', () => {
@@ -123,13 +128,13 @@ describe('PrismaPostRepository', () => {
   });
 
   describe('updateAmountReaction', () => {
-    it('when type reaction is like increment amount likes', async () => {
+    it('should update amountLikes when reaction type is like', async () => {
       const createReactionInput = buildReactionPost({
         type: 'LIKE',
       }) as CreateUsersLikePosts;
       const post = buildPost({
         id: createReactionInput.postId,
-        amountLike: 3,
+        amountLike: getAmountReaction,
       }) as Post;
 
       prismaMock.post.findUnique.mockResolvedValueOnce(post);
@@ -138,13 +143,14 @@ describe('PrismaPostRepository', () => {
         where: { id: post.id },
         data: { amountLike: post.amountLike! + 1 },
       };
+
       await prismaPostRepository.updateAmountReaction(createReactionInput);
 
       expect(prismaMock.post.update).toHaveBeenCalledTimes(1);
       expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
       expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
     });
-    it('when type reaction is dislike increment amount dislikes', async () => {
+    it('should update amountDislikes when reactions type is dislike', async () => {
       const createReactionInput = buildReactionPost({
         type: 'DISLIKE',
       }) as CreateUsersLikePosts;

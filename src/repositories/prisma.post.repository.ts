@@ -26,11 +26,13 @@ export default class PrismaPostRepository implements PostRepository {
     }
   }
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
-    await this.updateAmountReaction(input);
-
-    return await this.prisma.usersLikePosts.create({
+    const reaction = await this.prisma.usersLikePosts.create({
       data: input as Prisma.UsersLikePostsCreateInput,
     });
+
+    await this.updateAmountReaction(input);
+
+    return reaction;
   }
   all(): Promise<Post[]> {
     return this.prisma.post.findMany();
