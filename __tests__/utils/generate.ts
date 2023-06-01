@@ -1,6 +1,9 @@
 import { faker } from '@faker-js/faker';
 import { Response } from 'express';
-import { CreateUsersLikePosts } from '../../src/types/post';
+import {
+  CreateUsersLikePosts,
+  CreateUsersLikeComments,
+} from '../../src/types/post';
 import { Post } from '@prisma/client';
 
 export const getUsername = faker.internet.userName;
@@ -15,6 +18,7 @@ export const getTitlePost = faker.string.alpha({
   length: { min: 10, max: 50 },
 });
 export const getDescriptionPost = faker.commerce.productDescription();
+export const getIsDraft = faker.helpers.arrayElement([true, false]);
 
 function buildReq({ ...overrides } = {}) {
   const req = { user: buildUser(), body: {}, params: {}, ...overrides };
@@ -50,7 +54,9 @@ function buildPost({ ...overrides } = {}): Partial<Post> {
   };
 }
 
-function buildReaction({ ...overrides } = {}): CreateUsersLikePosts | object {
+function buildReactionPost({ ...overrides } = {}):
+  | CreateUsersLikePosts
+  | object {
   return {
     type: getTypeReaction,
     userId: getId({ min: 1, max: 100 }),
@@ -59,4 +65,30 @@ function buildReaction({ ...overrides } = {}): CreateUsersLikePosts | object {
   };
 }
 
-export { buildNext, buildReq, buildRes, buildUser, buildPost, buildReaction };
+function buildReactionComment({ ...overrides } = {}):
+  | CreateUsersLikeComments
+  | object {
+  return {
+    type: getTypeReaction,
+    userId: getId({ min: 1, max: 100 }),
+    commentId: getId({ min: 1, max: 100 }),
+    ...overrides,
+  };
+}
+
+function buildComment({ ...overrides } = {}) {
+  return {
+    body: getDescriptionPost,
+    ...overrides,
+  };
+}
+export {
+  buildNext,
+  buildReq,
+  buildRes,
+  buildUser,
+  buildPost,
+  buildReactionPost,
+  buildComment,
+  buildReactionComment,
+};

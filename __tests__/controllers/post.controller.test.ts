@@ -4,7 +4,7 @@ import PostService from '../../src/services/post.service';
 import {
   buildNext,
   buildPost,
-  buildReaction,
+  buildReactionPost,
   buildReq,
   buildRes,
   buildUser,
@@ -281,7 +281,9 @@ describe('PostController', () => {
 
   describe('createReaction', () => {
     const post = buildPost({ id: getId() }) as Post;
-    const reaction = buildReaction({ postId: post.id }) as CreateUsersLikePosts;
+    const reaction = buildReactionPost({
+      postId: post.id,
+    }) as CreateUsersLikePosts;
     const res = buildRes();
     const next = buildNext();
     const req = buildReq({

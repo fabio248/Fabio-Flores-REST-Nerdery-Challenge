@@ -2,7 +2,7 @@ import { Post, UsersLikePosts } from '@prisma/client';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { prismaMock } from '../utils/mockPrisma';
 import { PostCreateInput } from '../utils/generic';
-import { buildPost, buildReaction, getId } from '../utils/generate';
+import { buildPost, buildReactionPost, getId } from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
 
 describe('PrismaPostRepository', () => {
@@ -99,7 +99,7 @@ describe('PrismaPostRepository', () => {
   });
 
   describe('createReaction', () => {
-    const createReactionInput = buildReaction() as CreateUsersLikePosts;
+    const createReactionInput = buildReactionPost() as CreateUsersLikePosts;
     const post = buildPost({ id: createReactionInput.postId });
     it('should create a reaction in post', async () => {
       prismaMock.usersLikePosts.create.mockResolvedValueOnce(
@@ -123,8 +123,8 @@ describe('PrismaPostRepository', () => {
   });
 
   describe('updateAmountReaction', () => {
-    it('when type reaction like increment amount likes', async () => {
-      const createReactionInput = buildReaction({
+    it('when type reaction is like increment amount likes', async () => {
+      const createReactionInput = buildReactionPost({
         type: 'LIKE',
       }) as CreateUsersLikePosts;
       const post = buildPost({
@@ -144,8 +144,8 @@ describe('PrismaPostRepository', () => {
       expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
       expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
     });
-    it('when type reaction dislike increment amount dislikes', async () => {
-      const createReactionInput = buildReaction({
+    it('when type reaction is dislike increment amount dislikes', async () => {
+      const createReactionInput = buildReactionPost({
         type: 'DISLIKE',
       }) as CreateUsersLikePosts;
       const post = buildPost({
@@ -168,7 +168,7 @@ describe('PrismaPostRepository', () => {
   });
 
   describe('findReactionByUserIdAndPostId', () => {
-    const reaction = buildReaction() as CreateUsersLikePosts;
+    const reaction = buildReactionPost() as CreateUsersLikePosts;
     it('should return a reaction', async () => {
       prismaMock.usersLikePosts.findFirst.mockResolvedValueOnce(
         reaction as UsersLikePosts,

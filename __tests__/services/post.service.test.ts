@@ -5,7 +5,7 @@ import { PartialMock } from '../utils/generic';
 import { badData, forbidden, notFound } from '@hapi/boom';
 import {
   buildPost,
-  buildReaction,
+  buildReactionPost,
   buildUser,
   getId,
   getUsername,
@@ -18,7 +18,7 @@ describe('PostService', () => {
   let mockPostRepository: PartialMock<PrismaPostRepository>;
   const authorId = 5;
   let post = buildPost({ authorId, isDraft: false }) as Post;
-  let reaction = buildReaction() as CreateUsersLikePosts;
+  let reaction = buildReactionPost() as CreateUsersLikePosts;
   const notFoundError = notFound('post not found');
   const forbiddenError = forbidden('it is not your post');
 
