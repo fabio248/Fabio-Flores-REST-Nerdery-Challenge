@@ -8,6 +8,8 @@ import {
   buildReq,
   buildRes,
   buildUser,
+  getId,
+  getUsername,
 } from '../utils/generate';
 import { PartialMock } from '../utils/generic';
 import { Post } from '@prisma/client';
@@ -24,7 +26,7 @@ describe('PostController', () => {
     jest.clearAllMocks();
   });
   describe('create', () => {
-    const user = buildUser({ sub: 1 });
+    const user = buildUser({ sub: getId() });
     const post = buildPost();
     const req = buildReq({ user, body: post }) as unknown as Request;
     const res = buildRes();
@@ -75,7 +77,7 @@ describe('PostController', () => {
   });
 
   describe('findOne', () => {
-    const postId = 1;
+    const postId = getId();
     const post = buildPost({ id: postId });
     const req = buildReq({ params: { postId } }) as unknown as Request;
     const res = buildRes();
@@ -126,8 +128,8 @@ describe('PostController', () => {
   });
 
   describe('update', () => {
-    const postId = 1;
-    const authorId = 1;
+    const postId = getId();
+    const authorId = getId();
     const post = buildPost({ authorId });
     const req = buildReq({
       user: buildUser({ sub: authorId }),
@@ -182,7 +184,7 @@ describe('PostController', () => {
   });
 
   describe('delete', () => {
-    const postId = 1;
+    const postId = getId();
     const req = buildReq({ params: { postId } }) as unknown as Request;
     const res = buildRes();
     const next = buildNext();
@@ -278,7 +280,7 @@ describe('PostController', () => {
   });
 
   describe('createReaction', () => {
-    const post = buildPost({ id: 2 }) as Post;
+    const post = buildPost({ id: getId() }) as Post;
     const reaction = buildReaction({ postId: post.id }) as CreateUsersLikePosts;
     const res = buildRes();
     const next = buildNext();
@@ -318,6 +320,57 @@ describe('PostController', () => {
       await postController.createReaction(req, res, next);
 
       expect(mockPostService.createReaction).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.json).not.toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findPostWithUserWhoLikedIt', () => {
+    const postWithUserWhoLikedIt = buildPost({
+      id: getId({ min: 1, max: 100 }),
+      users: {
+        1: buildUser({ username: getUsername() }),
+        2: buildUser({ username: getUsername() }),
+      },
+    });
+    const req = buildReq({
+      params: { postId: postWithUserWhoLikedIt.id! },
+    }) as unknown as Request;
+    const res = buildRes();
+    const next = buildNext();
+
+    it('should return a post with the user who liked it', async () => {
+      mockPostService = {
+        findPostWithLikesAndUser: jest
+          .fn()
+          .mockResolvedValueOnce(postWithUserWhoLikedIt),
+      };
+
+      postController = new PostController(
+        mockPostService as unknown as PostService,
+      );
+
+      await postController.findPostWithUserWhoLikedIt(req, res, next);
+
+      expect(mockPostService.findPostWithLikesAndUser).toHaveBeenCalledTimes(1);
+      expect(res.json).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledWith(successfulStatus);
+    });
+    it('when happen an error invoke next funtion with the error', async () => {
+      expect.assertions(5);
+      mockPostService = {
+        findPostWithLikesAndUser: jest.fn().mockRejectedValueOnce(error),
+      };
+      postController = new PostController(
+        mockPostService as unknown as PostService,
+      );
+
+      await postController.findPostWithUserWhoLikedIt(req, res, next);
+
+      expect(mockPostService.findPostWithLikesAndUser).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
       expect(res.json).not.toHaveBeenCalled();

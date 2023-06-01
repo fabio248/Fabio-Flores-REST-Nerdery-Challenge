@@ -45,4 +45,8 @@ postRouter
   .post(
     validateSchemaHandler(createReactioPostSchema, 'body'),
     postController.createReaction.bind(postController),
+  )
+  .get(
+    validateSchemaHandler(getPostSchema, 'params'),
+    postController.findPostWithUserWhoLikedIt.bind(postController),
   );

@@ -2,7 +2,7 @@ import { Post, UsersLikePosts } from '@prisma/client';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { prismaMock } from '../utils/mockPrisma';
 import { PostCreateInput } from '../utils/generic';
-import { buildPost, buildReaction } from '../utils/generate';
+import { buildPost, buildReaction, getId } from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
 
 describe('PrismaPostRepository', () => {
@@ -183,6 +183,20 @@ describe('PrismaPostRepository', () => {
       expect(actual).toHaveProperty('postId', reaction.postId);
       expect(actual).toHaveProperty('userId', reaction.userId);
       expect(prismaMock.usersLikePosts.findFirst).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findPostWithLikesAndUser', () => {
+    const post = buildPost({ id: getId() }) as Post;
+    it('should return a post with users who liked it', async () => {
+      prismaMock.post.findUnique.mockResolvedValueOnce(post);
+
+      const actual = await prismaPostRepository.findPostWithLikesAndUser(
+        post.id,
+      );
+
+      expect(actual).toEqual(post);
+      expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
     });
   });
 });

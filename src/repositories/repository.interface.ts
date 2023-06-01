@@ -20,4 +20,5 @@ export interface PostRepository extends BaseRepository<Post> {
     postId: number,
     authorId: number,
   ): Promise<UsersLikePosts | null>;
+  findPostWithLikesAndUser(postId: number): Promise<Post | null>;
 }

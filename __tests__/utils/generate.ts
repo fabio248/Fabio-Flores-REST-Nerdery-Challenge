@@ -3,15 +3,18 @@ import { Response } from 'express';
 import { CreateUsersLikePosts } from '../../src/types/post';
 import { Post } from '@prisma/client';
 
-// const getUsername = faker.internet.userName;
-const getId = faker.number.int;
-const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
-const getTypeReaction = faker.helpers.arrayElement(['LIKE', 'DISLIKE']) as
-  | 'LIKE'
-  | 'DISLIKE';
+export const getUsername = faker.internet.userName;
+export const getId = faker.number.int;
+export const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
+export const getTypeReaction = faker.helpers.arrayElement([
+  'LIKE',
+  'DISLIKE',
+]) as 'LIKE' | 'DISLIKE';
 
-const getTitlePost = faker.string.alpha({ length: { min: 10, max: 50 } });
-const getDescriptionPost = faker.commerce.productDescription();
+export const getTitlePost = faker.string.alpha({
+  length: { min: 10, max: 50 },
+});
+export const getDescriptionPost = faker.commerce.productDescription();
 
 function buildReq({ ...overrides } = {}) {
   const req = { user: buildUser(), body: {}, params: {}, ...overrides };
@@ -33,7 +36,7 @@ function buildNext() {
 
 function buildUser({ ...overrides } = {}) {
   return {
-    id: getId,
+    id: getId({ min: 1, max: 100 }),
     role: getRole,
     ...overrides,
   };
@@ -50,8 +53,8 @@ function buildPost({ ...overrides } = {}): Partial<Post> {
 function buildReaction({ ...overrides } = {}): CreateUsersLikePosts | object {
   return {
     type: getTypeReaction,
-    userId: getId(),
-    postId: getId(),
+    userId: getId({ min: 1, max: 100 }),
+    postId: getId({ min: 1, max: 100 }),
     ...overrides,
   };
 }

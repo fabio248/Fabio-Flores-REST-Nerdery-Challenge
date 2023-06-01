@@ -3,7 +3,13 @@ import PostService from '../../src/services/post.service';
 import PrismaPostRepository from '../../src/repositories/prisma.post.repository';
 import { PartialMock } from '../utils/generic';
 import { badData, forbidden, notFound } from '@hapi/boom';
-import { buildPost, buildReaction } from '../utils/generate';
+import {
+  buildPost,
+  buildReaction,
+  buildUser,
+  getId,
+  getUsername,
+} from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
 import { PostRepository } from '../../src/repositories/repository.interface';
 
@@ -298,6 +304,36 @@ describe('PostService', () => {
       expect(
         mockPostRepository.findReactionByUserIdAndPostId,
       ).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findPostWithLikesAndUser', () => {
+    const postWithUserWhoLikedIt = buildPost({
+      id: getId({ min: 1, max: 100 }),
+      users: {
+        1: buildUser({ username: getUsername() }),
+        2: buildUser({ username: getUsername() }),
+      },
+    });
+    it('should return a post with user who liked it', async () => {
+      mockPostRepository = {
+        findById: jest.fn().mockReturnValueOnce(post),
+        findPostWithLikesAndUser: jest
+          .fn()
+          .mockReturnValueOnce(postWithUserWhoLikedIt),
+      };
+
+      postService = new PostService(mockPostRepository as PostRepository);
+
+      const actual = await postService.findPostWithLikesAndUser(
+        postWithUserWhoLikedIt.id!,
+      );
+
+      expect(actual).toEqual(postWithUserWhoLikedIt);
+      expect(mockPostRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockPostRepository.findPostWithLikesAndUser).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 });

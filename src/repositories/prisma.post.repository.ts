@@ -67,4 +67,22 @@ export default class PrismaPostRepository implements PostRepository {
       },
     });
   }
+  findPostWithLikesAndUser(postId: number): Promise<Post | null> {
+    return this.prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        userLikes: {
+          select: {
+            type: true,
+            user: {
+              select: {
+                id: true,
+                userName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

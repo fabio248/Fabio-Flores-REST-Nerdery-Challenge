@@ -73,6 +73,7 @@ export default class PostService {
     }
 
     const newReaction = await this.postRepo.createReaction(input);
+
     return newReaction;
   }
 
@@ -81,5 +82,14 @@ export default class PostService {
     userId: number,
   ): Promise<UsersLikePosts | null> {
     return this.postRepo.findReactionByUserIdAndPostId(postId, userId);
+  }
+  async findPostWithLikesAndUser(postId: number): Promise<Post> {
+    await this.findOne(postId);
+
+    const postWithUserWhoLikedIt = await this.postRepo.findPostWithLikesAndUser(
+      postId,
+    );
+
+    return postWithUserWhoLikedIt!;
   }
 }

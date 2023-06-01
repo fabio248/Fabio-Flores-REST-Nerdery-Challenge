@@ -84,4 +84,23 @@ export default class PostController {
       next(error);
     }
   }
+
+  async findPostWithUserWhoLikedIt(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const { postId } = req.params;
+
+      const postWithUserWhoLikedIt =
+        await this.postService.findPostWithLikesAndUser(+postId);
+
+      res
+        .status(200)
+        .json({ message: 'post found', data: postWithUserWhoLikedIt });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
