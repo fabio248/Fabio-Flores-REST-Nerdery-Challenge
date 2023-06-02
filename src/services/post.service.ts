@@ -60,7 +60,7 @@ export default class PostService {
 
     await this.postRepo.delete(postId);
 
-    return { message: `deleted user with id: ${postId}` };
+    return { message: `deleted post with id: ${postId}` };
   }
 
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
@@ -86,6 +86,7 @@ export default class PostService {
   ): Promise<UsersLikePosts | null> {
     return this.postRepo.findReactionByUserIdAndPostId(postId, userId);
   }
+
   async findPostWithLikesAndUser(postId: number): Promise<Post> {
     await this.findOne(postId);
 

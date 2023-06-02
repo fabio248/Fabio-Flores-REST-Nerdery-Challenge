@@ -22,6 +22,7 @@ export default class PostController {
     try {
       const { postId } = req.params;
       const post = await this.postService.findOne(+postId);
+
       res.status(200).json({ message: 'post found', data: post });
     } catch (error) {
       next(error);
