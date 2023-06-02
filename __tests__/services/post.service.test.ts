@@ -16,7 +16,7 @@ import { PostRepository } from '../../src/repositories/repository.interface';
 describe('PostService', () => {
   let postService: PostService;
   let mockPostRepository: PartialMock<PrismaPostRepository>;
-  const authorId = 5;
+  const authorId = getId({ min: 1, max: 100 });
   let post = buildPost({ authorId, isDraft: false }) as Post;
   let reaction = buildReactionPost() as CreateUsersLikePosts;
   const notFoundError = notFound('post not found');

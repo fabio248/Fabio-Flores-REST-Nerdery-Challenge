@@ -14,9 +14,12 @@ export default class PostService {
   }
 
   async all(): Promise<Post[]> {
+    const POST_IS_DRAFT = true;
     const post: Post[] = await this.postRepo.all();
 
-    const postArentDraft: Post[] = post.filter((post) => post.isDraft !== true);
+    const postArentDraft: Post[] = post.filter(
+      (post) => post.isDraft !== POST_IS_DRAFT,
+    );
 
     return postArentDraft;
   }

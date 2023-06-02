@@ -17,7 +17,7 @@ const getAmountReaction = faker.number.int({ min: 5, max: 500 });
 export const getTitlePost = faker.string.alpha({
   length: { min: 10, max: 50 },
 });
-export const getDescriptionPost = faker.commerce.productDescription();
+export const getDescription = faker.commerce.productDescription();
 export const getIsDraft = faker.helpers.arrayElement([true, false]);
 
 function buildReq({ ...overrides } = {}) {
@@ -49,7 +49,7 @@ function buildUser({ ...overrides } = {}) {
 function buildPost({ ...overrides } = {}): Partial<Post> {
   return {
     title: getTitlePost,
-    description: getDescriptionPost,
+    description: getDescription,
     ...overrides,
   };
 }
@@ -78,7 +78,7 @@ function buildReactionComment({ ...overrides } = {}):
 
 function buildComment({ ...overrides } = {}) {
   return {
-    body: getDescriptionPost,
+    body: getDescription,
     ...overrides,
   };
 }
