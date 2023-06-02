@@ -1,4 +1,4 @@
-import { getToken } from '../utils/generate';
+import { getEmail, getId, getToken } from '../utils/generate';
 const token = getToken;
 import { SendMailConfirmationType } from '../../src/types/mailer';
 import { accountEmailConfirmationEvent } from '../../src/event/mailer.event';
@@ -17,9 +17,10 @@ jest.mock('../../src/dependencies/dependencies', () => ({
 
 describe('accountEmailConfirmationEvent', () => {
   const confirmationArgument: SendMailConfirmationType = {
-    email: 'fabio@gmail.com',
-    id: 123,
+    email: getEmail,
+    id: getId(),
   };
+
   it('should send account confirmation email', async () => {
     expect.assertions(3);
     await accountEmailConfirmationEvent(confirmationArgument);

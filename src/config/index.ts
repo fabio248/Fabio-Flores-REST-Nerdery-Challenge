@@ -18,5 +18,7 @@ export default {
   smtp: {
     email: process.env.SMTP_EMAIL,
     password: process.env.SMTP_PASSWORD,
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT as string),
   },
 };
