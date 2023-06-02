@@ -1,5 +1,5 @@
 /// <reference types="./types/express.d.ts" />
-import express, { Application, Request, Response } from 'express';
+import express, { Application } from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import config from './config';
@@ -17,10 +17,6 @@ app.use(morgan('dev'));
 
 // import authenticate methods
 import './utils/auth/index';
-
-app.get('/ping', (_req: Request, res: Response) => {
-  res.send('pong');
-});
 
 routerApi(app);
 

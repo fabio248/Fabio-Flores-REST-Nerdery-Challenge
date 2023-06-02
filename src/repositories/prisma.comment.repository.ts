@@ -21,6 +21,7 @@ export default class PrismaCommentRepository implements CommentRepository {
   all(): Promise<Comment[]> {
     return this.prisma.comment.findMany();
   }
+
   async createReaction(
     input: CreateUsersLikeComments,
   ): Promise<UsersLikeComments> {
@@ -32,6 +33,7 @@ export default class PrismaCommentRepository implements CommentRepository {
 
     return reaction;
   }
+
   async updateAmountReaction(input: CreateUsersLikeComments): Promise<void> {
     const comment = await this.findById(input.commentId);
 
@@ -47,6 +49,7 @@ export default class PrismaCommentRepository implements CommentRepository {
       });
     }
   }
+
   findCommentWithLikesAndUser(commentId: number): Promise<Comment | null> {
     return this.prisma.comment.findUnique({
       where: { id: commentId },
@@ -65,6 +68,7 @@ export default class PrismaCommentRepository implements CommentRepository {
       },
     });
   }
+
   findById(id: number): Promise<Comment | null> {
     return this.prisma.comment.findUnique({
       where: { id },
@@ -74,12 +78,15 @@ export default class PrismaCommentRepository implements CommentRepository {
       },
     });
   }
+
   create(input: Prisma.CommentCreateInput): Promise<Comment> {
     return this.prisma.comment.create({ data: input });
   }
+
   update(id: number, data: object): Promise<Comment> {
     return this.prisma.comment.update({ where: { id }, data });
   }
+
   delete(id: number): Promise<Comment> {
     return this.prisma.comment.delete({ where: { id } });
   }

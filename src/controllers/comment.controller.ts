@@ -22,6 +22,7 @@ export default class CommentController {
       next(error);
     }
   }
+
   async findOne(req: Request, res: Response, next: NextFunction) {
     try {
       const { commentId } = req.params;
@@ -51,6 +52,7 @@ export default class CommentController {
       next(error);
     }
   }
+
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { commentId } = req.params;

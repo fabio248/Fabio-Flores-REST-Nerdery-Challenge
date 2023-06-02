@@ -22,6 +22,7 @@ export const createUserSchema = Joi.object({
   role,
   verifyToken,
 });
+
 export const updateUserSchema = Joi.object({
   firstName,
   lastName,

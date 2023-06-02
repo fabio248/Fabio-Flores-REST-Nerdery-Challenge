@@ -67,6 +67,7 @@ export async function deleteUser(
     next(error);
   }
 }
+
 export async function confirmateAccount(
   req: Request,
   res: Response,

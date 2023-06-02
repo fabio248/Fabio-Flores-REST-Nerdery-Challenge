@@ -44,6 +44,7 @@ if (config.enviroment === 'development') {
   commentService = new CommentService(prismaCommentRepo);
   commentController = new CommentController(commentService);
 }
+
 export {
   userService,
   mailerService,

@@ -4,7 +4,7 @@ import { login } from '../controllers/auth.controller';
 import { validateSchemaHandler } from '../middleware/validateSchema.middleware';
 import { loginSchema } from '../schemas/auth.schema';
 
-const authRouter: Router = Router();
+export const authRouter: Router = Router();
 
 authRouter.post(
   '/login',
@@ -12,5 +12,3 @@ authRouter.post(
   passport.authenticate('local', { session: false }),
   login,
 );
-
-export { authRouter };

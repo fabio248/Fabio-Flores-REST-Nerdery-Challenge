@@ -21,11 +21,13 @@ accountRouter.post(
   validateSchemaHandler(createUserSchema, 'body'),
   createUser,
 );
+
 accountRouter.post(
   '/confirm-account',
   validateSchemaHandler(confirmAccountSchema, 'params'),
   confirmateAccount,
 );
+
 accountRouter
   .route('/me')
   .all(passport.authenticate('jwt', { session: false }))

@@ -25,6 +25,7 @@ export default class PrismaPostRepository implements PostRepository {
       });
     }
   }
+
   async createReaction(input: CreateUsersLikePosts): Promise<UsersLikePosts> {
     const reaction = await this.prisma.usersLikePosts.create({
       data: input as Prisma.UsersLikePostsCreateInput,
@@ -34,9 +35,11 @@ export default class PrismaPostRepository implements PostRepository {
 
     return reaction;
   }
+
   all(): Promise<Post[]> {
     return this.prisma.post.findMany();
   }
+
   findById(id: number): Promise<Post | null> {
     return this.prisma.post.findUnique({
       where: { id },
@@ -49,15 +52,19 @@ export default class PrismaPostRepository implements PostRepository {
       },
     });
   }
+
   create(input: Prisma.PostCreateInput): Promise<Post> {
     return this.prisma.post.create({ data: input });
   }
+
   update(id: number, data: object): Promise<Post> {
     return this.prisma.post.update({ where: { id }, data });
   }
+
   delete(id: number): Promise<Post> {
     return this.prisma.post.delete({ where: { id } });
   }
+
   findReactionByUserIdAndPostId(
     postId: number,
     userId: number,
@@ -69,6 +76,7 @@ export default class PrismaPostRepository implements PostRepository {
       },
     });
   }
+
   findPostWithLikesAndUser(postId: number): Promise<Post | null> {
     return this.prisma.post.findUnique({
       where: { id: postId },
