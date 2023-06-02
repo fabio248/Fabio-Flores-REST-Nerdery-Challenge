@@ -14,6 +14,7 @@ import {
 import { Comment } from '@prisma/client';
 import { CommentRepository } from '../../src/repositories/repository.interface';
 import { CreateUsersLikeComments } from '../../src/types/post';
+
 describe('CommentService', () => {
   let commentService: CommentService;
   let mockCommentRepository: PartialMock<PrismaCommentRepository>;
@@ -36,6 +37,7 @@ describe('CommentService', () => {
       afterEach(async () => {
         jest.clearAllMocks();
       });
+
       it('should create a new comment', async () => {
         expect.assertions(4);
         mockCommentRepository = {
@@ -126,8 +128,9 @@ describe('CommentService', () => {
       ...comment,
       body: getDescription,
     };
+
     it('should update a comment only if owned by the user', async () => {
-      // expect.assertions(8);
+      expect.assertions(7);
       mockCommentRepository = {
         findById: jest.fn().mockReturnValueOnce(comment),
         update: jest.fn().mockReturnValueOnce(updateComment),
@@ -209,6 +212,7 @@ describe('CommentService', () => {
   describe('delete', () => {
     const response = { message: `deleted comment with id: ${commentId}` };
     const comment = buildComment({ id: commentId, authorId });
+
     it('should delele an exists post and return their id', async () => {
       expect.assertions(5);
       mockCommentRepository = {
@@ -267,9 +271,10 @@ describe('CommentService', () => {
       expect(mockCommentRepository.delete).not.toHaveBeenCalled();
     });
   });
+
   describe('createReaction', () => {
     it('should create a new reaction to a comment', async () => {
-      // expect.assertions(6);
+      expect.assertions(6);
       const comment = buildComment({
         id: reaction.commentId,
         authorId: reaction.userId,
@@ -297,6 +302,7 @@ describe('CommentService', () => {
     });
 
     it('throw an error when the user has already liked the comment', async () => {
+      expect.assertions(3);
       const comment = buildReactionComment({
         id: reaction.commentId,
         authorId: reaction.userId,
@@ -322,6 +328,7 @@ describe('CommentService', () => {
       expect(mockCommentRepository.createReaction).not.toHaveBeenCalled();
     });
   });
+
   describe('findCommentWithLikesAndUser', () => {
     const commentWithUserWhoLikedIt = buildComment({
       id: getId({ min: 1, max: 100 }),
@@ -330,6 +337,7 @@ describe('CommentService', () => {
         2: buildUser({ username: getUsername() }),
       },
     }) as Comment;
+
     it('should return a comment with user who liked it', async () => {
       mockCommentRepository = {
         findById: jest.fn().mockReturnValueOnce(comment),

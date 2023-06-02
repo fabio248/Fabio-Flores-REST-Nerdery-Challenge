@@ -25,6 +25,7 @@ describe('PostController', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
   });
+
   describe('create', () => {
     const user = buildUser({ sub: getId() });
     const post = buildPost();
@@ -164,6 +165,7 @@ describe('PostController', () => {
       expect(res.status).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
+
     it('when happen an error invoke next funtion with the error', async () => {
       expect.assertions(5);
       mockPostService = {
@@ -235,9 +237,9 @@ describe('PostController', () => {
     const res = buildRes();
     const next = buildNext();
     const listPost: Post[] = [
-      buildPost({ authorId: 1, isDraft: false }),
-      buildPost({ authorId: 2, isDraft: false }),
-      buildPost({ authorId: 3, isDraft: false }),
+      buildPost({ authorId: getId(), isDraft: false }),
+      buildPost({ authorId: getId(), isDraft: false }),
+      buildPost({ authorId: getId(), isDraft: false }),
     ] as Post[];
 
     it('should return list of post ', async () => {
@@ -291,6 +293,7 @@ describe('PostController', () => {
       params: { postId: post.id },
       body: { type: reaction.type },
     }) as unknown as Request;
+
     it('should create reaction to a post', async () => {
       expect.assertions(6);
       mockPostService = {
@@ -310,6 +313,7 @@ describe('PostController', () => {
       expect(res.status).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(creationStatus);
     });
+
     it('when happen an error invoke next funtion with the error', async () => {
       expect.assertions(5);
       mockPostService = {
@@ -361,6 +365,7 @@ describe('PostController', () => {
       expect(res.status).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(successfulStatus);
     });
+
     it('when happen an error invoke next funtion with the error', async () => {
       expect.assertions(5);
       mockPostService = {

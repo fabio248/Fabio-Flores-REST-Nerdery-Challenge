@@ -9,7 +9,7 @@ export default class PostController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const input = req.body;
-      const user = req['user'] as JwtPayload;
+      const user = req.user as JwtPayload;
       const newPost = await this.postService.create(input, parseInt(user.sub!));
 
       res.status(201).json({ message: 'post created', data: newPost });
@@ -67,6 +67,7 @@ export default class PostController {
       next(error);
     }
   }
+
   async createReaction(req: Request, res: Response, next: NextFunction) {
     try {
       const { postId } = req.params;

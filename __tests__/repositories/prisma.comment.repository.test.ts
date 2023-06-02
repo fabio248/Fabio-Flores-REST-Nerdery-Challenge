@@ -3,7 +3,6 @@ import {
   buildComment,
   buildReactionComment,
   getAmountReaction,
-  // getAmountReaction,
   getId,
   getIsDraft,
 } from '../utils/generate';
@@ -162,6 +161,7 @@ describe('PrismaCommentRepository', () => {
       expect(prismaMock.comment.findUnique).toHaveBeenCalledTimes(1);
     });
   });
+
   describe('createReactionComment', () => {
     const comment = buildComment({ id: getId }) as Comment;
     const reaction = buildReactionComment({

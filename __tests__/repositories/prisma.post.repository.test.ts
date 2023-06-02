@@ -14,9 +14,11 @@ describe('PrismaPostRepository', () => {
   const id = 1;
   let prismaPostRepository: PrismaPostRepository;
   const post = buildPost({ isDraft: false }) as Post;
+
   beforeEach(() => {
     prismaPostRepository = new PrismaPostRepository(prismaMock);
   });
+
   describe('all', () => {
     it('should return all post', async () => {
       expect.assertions(4);
@@ -106,6 +108,7 @@ describe('PrismaPostRepository', () => {
   describe('createReaction', () => {
     const createReactionInput = buildReactionPost() as CreateUsersLikePosts;
     const post = buildPost({ id: createReactionInput.postId });
+
     it('should create a reaction in post', async () => {
       prismaMock.usersLikePosts.create.mockResolvedValueOnce(
         createReactionInput as UsersLikePosts,
@@ -150,13 +153,14 @@ describe('PrismaPostRepository', () => {
       expect(prismaMock.post.update).toHaveBeenCalledWith(expectedCalled);
       expect(prismaMock.post.findUnique).toHaveBeenCalledTimes(1);
     });
+
     it('should update amountDislikes when reactions type is dislike', async () => {
       const createReactionInput = buildReactionPost({
         type: 'DISLIKE',
       }) as CreateUsersLikePosts;
       const post = buildPost({
         id: createReactionInput.postId,
-        amountDislike: 3,
+        amountDislike: getAmountReaction,
       }) as Post;
 
       prismaMock.post.findUnique.mockResolvedValueOnce(post);
@@ -165,6 +169,7 @@ describe('PrismaPostRepository', () => {
         where: { id: post.id },
         data: { amountDislike: post.amountDislike! + 1 },
       };
+
       await prismaPostRepository.updateAmountReaction(createReactionInput);
 
       expect(prismaMock.post.update).toHaveBeenCalledTimes(1);

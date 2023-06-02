@@ -1,8 +1,11 @@
 import { MailerService } from '../../src/services/mailer.service';
 import { createTransport, getTestMessageUrl } from 'nodemailer';
 import mockConfig from '../utils/mockConfig';
+import { getDescription, getEmail } from '../utils/generate';
+
 const expected = { preview: 'mocked_preview_url' };
 const messageMock = { messageId: 'mocked_message_id' };
+
 jest.mock('nodemailer', () => ({
   createTransport: jest.fn(() => ({
     sendMail: jest.fn(() => Promise.resolve(messageMock)),
@@ -13,8 +16,8 @@ jest.mock('../../src/config', () => require('../utils/mockConfig'));
 
 describe('MailerService', () => {
   const mailBody = {
-    to: 'examle@gmail.com',
-    subject: 'Sample Subject',
+    to: getEmail,
+    subject: getDescription,
     html: '<p>hola</p>',
   };
   const mailerService = new MailerService();

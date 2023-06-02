@@ -3,17 +3,15 @@ import jwt from 'jsonwebtoken';
 import { AuthService } from '../../src/services/auth.service';
 import { PartialMock } from '../utils/generic';
 import UserService from '../../src/services/user.service';
+import { buildUser, getToken } from '../utils/generate';
 
 describe('AuthService', () => {
-  const user = {
-    id: 1,
-    role: 'USER',
-  } as User;
+  const user = buildUser() as User;
   let userService: PartialMock<UserService> = {
     update: jest.fn(),
   };
   const authService = new AuthService(userService as unknown as UserService);
-  const token = 'this a example token';
+  const token = getToken;
   const spySign = jest.spyOn(jwt, 'sign').mockImplementation(() => token);
 
   describe('signToken', () => {

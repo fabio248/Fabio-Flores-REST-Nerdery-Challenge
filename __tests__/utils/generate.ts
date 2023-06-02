@@ -7,18 +7,23 @@ import {
 import { Post } from '@prisma/client';
 
 const getUsername = faker.internet.userName;
+const getEmail = faker.internet.email();
+const getPassword = faker.internet.password();
+const getFirstName = faker.person.firstName();
+const getLastName = faker.person.lastName();
+const getBoolean = faker.helpers.arrayElement([true, false]);
 const getId = faker.number.int;
 const getRole = faker.helpers.arrayElement(['USER', 'ADMIN']);
 const getTypeReaction = faker.helpers.arrayElement(['LIKE', 'DISLIKE']) as
   | 'LIKE'
   | 'DISLIKE';
 const getAmountReaction = faker.number.int({ min: 5, max: 500 });
-
+const getToken = faker.string.uuid();
 export const getTitlePost = faker.string.alpha({
   length: { min: 10, max: 50 },
 });
-export const getDescription = faker.commerce.productDescription();
-export const getIsDraft = faker.helpers.arrayElement([true, false]);
+const getDescription = faker.commerce.productDescription();
+const getIsDraft = faker.helpers.arrayElement([true, false]);
 
 function buildReq({ ...overrides } = {}) {
   const req = { user: buildUser(), body: {}, params: {}, ...overrides };
@@ -96,4 +101,12 @@ export {
   getRole,
   getTypeReaction,
   getAmountReaction,
+  getToken,
+  getDescription,
+  getIsDraft,
+  getEmail,
+  getFirstName,
+  getLastName,
+  getPassword,
+  getBoolean,
 };

@@ -2,21 +2,32 @@ import PrismaUserRepository from '../../src/repositories/prisma.user.repository'
 import { prismaMock } from '../utils/mockPrisma';
 import { CreateUserEntry } from '../../src/types/user';
 import { User } from '@prisma/client';
+import {
+  buildUser,
+  getBoolean,
+  getEmail,
+  getFirstName,
+  getId,
+  getLastName,
+  getPassword,
+  getUsername,
+} from '../utils/generate';
 let prismaUserRepo: PrismaUserRepository;
 
 beforeEach(() => {
   prismaUserRepo = new PrismaUserRepository(prismaMock);
 });
 describe('PrismaUserRepository', () => {
-  const user: CreateUserEntry = {
-    email: 'fabio@gmail.com',
-    password: 'password',
-    firstName: 'Fabio',
-    lastName: 'Flores',
-    userName: 'fabio',
-    isPublicEmail: true,
-    isPublicName: true,
-  };
+  const user = buildUser({
+    email: getEmail,
+    password: getPassword,
+    firstName: getFirstName,
+    lastName: getLastName,
+    userName: getUsername(),
+    isPublicEmail: getBoolean,
+    isPublicName: getBoolean,
+  }) as unknown as CreateUserEntry;
+
   describe('all', () => {
     it('should return a list of users', async () => {
       prismaMock.user.findMany.mockResolvedValue([user, user, user] as User[]);
@@ -24,16 +35,18 @@ describe('PrismaUserRepository', () => {
       const actual = await prismaUserRepo.all();
 
       expect(actual.length).toBe(3);
+      expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('findById', () => {
     it('should return a user found by id', async () => {
-      const id: number = 1;
-      prismaMock.user.findUnique.mockResolvedValue(user as User);
+      const id: number = getId();
+      prismaMock.user.findUnique.mockResolvedValue({ ...user, id } as User);
 
       const actual = await prismaUserRepo.findById(id);
 
+      expect(actual).toHaveProperty('id', id);
       expect(actual).toHaveProperty('firstName', user.firstName);
       expect(actual).toHaveProperty('lastName', user.lastName);
       expect(actual).toHaveProperty('userName', user.userName);
@@ -45,7 +58,7 @@ describe('PrismaUserRepository', () => {
 
   describe('findByEmail', () => {
     it('shouled return a user found by email', async () => {
-      const email = 'fabio@gmail.com';
+      const email = getEmail;
       prismaMock.user.findUnique.mockResolvedValue(user as User);
 
       const actual = await prismaUserRepo.findByEmail(email);
@@ -74,6 +87,7 @@ describe('PrismaUserRepository', () => {
       expect(actual).toHaveProperty('isPublicName', user.isPublicName);
     });
   });
+
   describe('create', () => {
     it('should create a new user', async () => {
       prismaMock.user.create.mockResolvedValue(user as User);
@@ -91,27 +105,31 @@ describe('PrismaUserRepository', () => {
 
   describe('update', () => {
     it('should update a users name ', async () => {
+      const firstName = getFirstName;
       prismaMock.user.update.mockResolvedValue({
         ...user,
-        firstName: 'Ernesto',
+        firstName,
       } as User);
 
       const actual = await prismaUserRepo.update(1, {
         ...user,
-        firstName: 'Ernesto',
+        firstName,
       });
 
-      expect(actual).toHaveProperty('firstName', 'Ernesto');
+      expect(actual).toHaveProperty('firstName', firstName);
+      expect(prismaMock.user.update).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('delete', () => {
     it('should delete a users by id and return', async () => {
+      const id = getId();
       prismaMock.user.delete.mockResolvedValue(user as User);
 
-      const actual = await prismaUserRepo.delete(1);
+      const actual = await prismaUserRepo.delete(id);
 
-      expect(actual).toBe(user);
+      expect(actual).toEqual(user);
+      expect(prismaMock.user.delete).toHaveBeenCalledTimes(1);
     });
   });
 });

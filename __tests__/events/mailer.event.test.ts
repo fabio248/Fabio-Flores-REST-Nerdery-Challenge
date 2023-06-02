@@ -1,4 +1,7 @@
-const token = 'samleToken';
+import { getToken } from '../utils/generate';
+const token = getToken;
+import { SendMailConfirmationType } from '../../src/types/mailer';
+import { accountEmailConfirmationEvent } from '../../src/event/mailer.event';
 import {
   mailerService,
   userService,
@@ -11,8 +14,6 @@ jest.mock('../../src/dependencies/dependencies', () => ({
     generateConfimationToken: jest.fn().mockResolvedValue(token),
   },
 }));
-import { SendMailConfirmationType } from '../../src/types/mailer';
-import { accountEmailConfirmationEvent } from '../../src/event/mailer.event';
 
 describe('accountEmailConfirmationEvent', () => {
   const confirmationArgument: SendMailConfirmationType = {
@@ -20,6 +21,7 @@ describe('accountEmailConfirmationEvent', () => {
     id: 123,
   };
   it('should send account confirmation email', async () => {
+    expect.assertions(3);
     await accountEmailConfirmationEvent(confirmationArgument);
 
     expect(userService.generateConfimationToken).toHaveBeenCalledTimes(1);

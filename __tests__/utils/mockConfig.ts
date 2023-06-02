@@ -1,7 +1,9 @@
+import { getEmail, getPassword } from './generate';
+
 const mockConfig = {
   smtp: {
-    email: 'test@example.com',
-    password: 'mocked-password',
+    email: getEmail,
+    password: getPassword,
   },
 };
 

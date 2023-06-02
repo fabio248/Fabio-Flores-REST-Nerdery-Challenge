@@ -8,6 +8,7 @@ import {
   buildReactionPost,
   buildUser,
   getId,
+  getTitlePost,
   getUsername,
 } from '../utils/generate';
 import { CreateUsersLikePosts } from '../../src/types/post';
@@ -25,6 +26,7 @@ describe('PostService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
   });
+
   describe('create', () => {
     it('should return a new post', async () => {
       expect.assertions(4);
@@ -61,9 +63,10 @@ describe('PostService', () => {
   });
 
   describe('findOne', () => {
+    const id = getId();
+
     it('should return a post that exits search by id', async () => {
       expect.assertions(5);
-      const id = 1;
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce(post),
       };
@@ -83,7 +86,6 @@ describe('PostService', () => {
 
     it("throw an error when post doesn't exist ", async () => {
       expect.assertions(3);
-      const id = 1;
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce(null),
       };
@@ -101,12 +103,13 @@ describe('PostService', () => {
   });
 
   describe('update', () => {
-    const id = 1;
+    const id = getId();
     const updatePost = {
       ...post,
-      title: 'change title',
+      title: getTitlePost,
       id,
     };
+
     it('should update a post only if owned by the user', async () => {
       expect.assertions(8);
       mockPostRepository = {
@@ -176,8 +179,8 @@ describe('PostService', () => {
   });
 
   describe('delete', () => {
-    const postId = 1;
-    const response = { message: `deleted user with id: ${postId}` };
+    const postId = getId();
+    const response = { message: `deleted post with id: ${postId}` };
     it('should delele an exists post and return their id', async () => {
       expect.assertions(5);
       mockPostRepository = {
@@ -198,7 +201,7 @@ describe('PostService', () => {
     });
 
     it('throw an error if the post is not owned by the user', async () => {
-      // expect.assertions(8);
+      expect.assertions(4);
       mockPostRepository = {
         findById: jest.fn().mockReturnValueOnce({ ...post, authorId: 1 }),
         delete: jest.fn().mockReturnValueOnce(post),
@@ -215,6 +218,7 @@ describe('PostService', () => {
       expect(mockPostRepository.findById).toHaveBeenCalledWith(postId);
       expect(mockPostRepository.delete).not.toHaveBeenCalled();
     });
+
     it('throw an error when post does not exits', async () => {
       expect.assertions(4);
       mockPostRepository = {

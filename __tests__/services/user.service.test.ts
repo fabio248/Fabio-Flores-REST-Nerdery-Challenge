@@ -7,18 +7,29 @@ import { UserRepository } from '../../src/repositories/repository.interface';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { PartialMock } from '../utils/generic';
+import {
+  buildUser,
+  getEmail,
+  getFirstName,
+  getId,
+  getLastName,
+  getPassword,
+  getToken,
+  getUsername,
+} from '../utils/generate';
+
 emitter.emit = jest.fn();
 
 describe('UserService', () => {
-  let user: CreateUserEntry = {
-    email: 'fabio@gmail.com',
-    password: 'password',
-    firstName: 'Fabio',
-    lastName: 'Flores',
-    userName: 'fabio',
+  const user = buildUser({
+    email: getEmail,
+    password: getPassword,
+    firstName: getFirstName,
+    lastName: getLastName,
+    userName: getUsername(),
     isPublicEmail: true,
     isPublicName: true,
-  };
+  }) as unknown as CreateUserEntry;
   let userService: UserService;
   let prismaUserRepoMock: PartialMock<PrismaUserRepository>;
 
@@ -54,13 +65,11 @@ describe('UserService', () => {
 
     it('should return a new user without names and email', async () => {
       expect.assertions(8);
-
       const userWithOutEmailAndName = {
         ...user,
         isPublicName: false,
         isPublicEmail: false,
       };
-
       prismaUserRepoMock = {
         findByEmail: jest.fn().mockReturnValueOnce(null),
         findByUserName: jest.fn().mockReturnValueOnce(null),
@@ -117,7 +126,7 @@ describe('UserService', () => {
   describe('findOne', () => {
     it('should return a found user', async () => {
       expect.assertions(7);
-      const id = 1;
+      const id = getId();
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce({ ...user, id }),
       };
@@ -155,8 +164,8 @@ describe('UserService', () => {
     it("should update user's info ", async () => {
       expect.assertions(7);
 
-      const id = 1;
-      const newFirstName = 'Ernesto';
+      const id = getId();
+      const newFirstName = getFirstName;
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(user),
         findByEmail: jest.fn().mockReturnValueOnce(null),
@@ -180,22 +189,21 @@ describe('UserService', () => {
       expect(actual).not.toHaveProperty('createdAt');
       expect(actual).not.toHaveProperty('updatedAt');
     });
+
     it("should hash the password if it's pass by argument", async () => {
       expect.assertions(8);
-      const id = 1;
-      const newPassword = 'password';
+      const id = getId();
+      const newPassword = getPassword;
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(user),
         findByEmail: jest.fn().mockReturnValueOnce(null),
         findByUserName: jest.fn().mockReturnValueOnce(null),
         update: jest.fn().mockReturnValueOnce({ ...user, id }),
       };
-
-      const spyHashSyncBcrypt = jest.spyOn(bcrypt, 'hashSync');
-
       userService = new UserService(
         prismaUserRepoMock as unknown as UserRepository,
       );
+      const spyHashSyncBcrypt = jest.spyOn(bcrypt, 'hashSync');
 
       const actual = await userService.update(id, { password: newPassword });
 
@@ -210,30 +218,29 @@ describe('UserService', () => {
     });
 
     it('throw an error for email already taken', async () => {
-      expect.assertions(1);
-      const id = 1;
-      const emailAlreadyTaken = 'fabioflores021@gmail.com';
+      expect.assertions(2);
+      const id = getId();
+      const emailAlreadyTaken = getEmail;
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(user),
         findByEmail: jest.fn().mockReturnValueOnce(user),
         findByUserName: jest.fn().mockReturnValueOnce(null),
       };
-
       userService = new UserService(
         prismaUserRepoMock as unknown as UserRepository,
       );
-
       const expected = badData('email already taken');
 
       const actual = () => userService.update(id, { email: emailAlreadyTaken });
 
       expect(actual).rejects.toEqual(expected);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
     });
 
     it('throw an error for username already taken', async () => {
-      expect.assertions(1);
-      const id = 1;
-      const userNameAlreadyTaken = 'fabio';
+      expect.assertions(2);
+      const id = getId();
+      const userNameAlreadyTaken = getUsername();
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(user),
         findByEmail: jest.fn().mockReturnValueOnce(null),
@@ -252,11 +259,12 @@ describe('UserService', () => {
         userService.update(id, { userName: userNameAlreadyTaken });
 
       expect(actual).rejects.toEqual(expected);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
     });
 
     it('throw an error when user not exits', async () => {
-      expect.assertions(1);
-      const id = 1;
+      expect.assertions(2);
+      const id = getId();
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(null),
       };
@@ -270,13 +278,14 @@ describe('UserService', () => {
       const actual = () => userService.update(id, { firstName: 'Ernesto' });
 
       expect(actual).rejects.toEqual(expected);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('detele', () => {
     it('should return id of the deleted user', async () => {
-      expect.assertions(2);
-      const id = 1;
+      expect.assertions(4);
+      const id = getId();
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(user),
         delete: jest.fn().mockReturnValueOnce(user),
@@ -291,10 +300,13 @@ describe('UserService', () => {
 
       expect(actual).toHaveProperty('message', expected.message);
       expect(actual).toEqual(expected);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
+      expect(prismaUserRepoMock.delete).toHaveBeenCalledTimes(1);
     });
+
     it('throw an error when user not exits', async () => {
-      expect.assertions(1);
-      const id = 1;
+      expect.assertions(2);
+      const id = getId();
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(null),
       };
@@ -308,13 +320,14 @@ describe('UserService', () => {
       const actual = () => userService.detele(id);
 
       expect(actual).rejects.toEqual(expected);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('generateConfimationToken', () => {
     it('should return token', async () => {
       expect.assertions(2);
-      const token = 'this is my confirmation token';
+      const token = getToken;
       const spySignJwt = jest.spyOn(jwt, 'sign');
       spySignJwt.mockImplementation(() => token);
 
@@ -337,9 +350,9 @@ describe('UserService', () => {
   describe('findUserWithAllInfo', () => {
     const spyVerifyJwt = jest.spyOn(jwt, 'verify');
     spyVerifyJwt.mockImplementation(() => ({
-      sub: 1,
+      sub: getId(),
     }));
-    const token = 'this is my confirmation token';
+    const token = getToken;
 
     it('should confirmate account', async () => {
       prismaUserRepoMock = {
@@ -361,8 +374,9 @@ describe('UserService', () => {
       expect(actual).toEqual(expected);
       expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
     });
+
     it("throw an error when token aren't the same", async () => {
-      const invalidToken = 'Invalid token';
+      const invalidToken = token + getToken;
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValue({
           ...user,
@@ -383,6 +397,7 @@ describe('UserService', () => {
       expect(actual).rejects.toEqual(expected);
       expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
     });
+
     it('throw an error when user already verified', async () => {
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValue({
@@ -404,11 +419,11 @@ describe('UserService', () => {
       expect(actual).rejects.toEqual(expected);
       expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
     });
+
     it('throw an error when user doesnt exits', async () => {
       prismaUserRepoMock = {
         findById: jest.fn().mockReturnValueOnce(null),
       };
-
       userService = new UserService(
         prismaUserRepoMock as unknown as UserRepository,
       );
@@ -425,6 +440,7 @@ describe('UserService', () => {
     const email = user.email;
     const password = user.password;
     const spyCompareSyncBcrypt = jest.spyOn(bcrypt, 'compareSync');
+
     it("should return user's info when pass by argument correct password and email", async () => {
       prismaUserRepoMock = {
         findByEmail: jest.fn().mockReturnValueOnce(user),
@@ -434,13 +450,14 @@ describe('UserService', () => {
       );
       spyCompareSyncBcrypt.mockImplementation(() => true);
 
-      const expected = { ...user, password: undefined };
+      const expected = { ...user, password: undefined, role: undefined };
 
       const actual = await userService.authenticateUser(email, password);
 
       expect(actual).toEqual(expected);
       expect(spyCompareSyncBcrypt).toHaveBeenCalledTimes(1);
     });
+
     it('throw an error when email is incorrect ', async () => {
       prismaUserRepoMock = {
         findByEmail: jest.fn().mockReturnValueOnce(null),
@@ -457,7 +474,7 @@ describe('UserService', () => {
     });
 
     it("throw an error when password aren't the same", async () => {
-      const incorrectPassword = '123456';
+      const incorrectPassword = getPassword;
       prismaUserRepoMock = {
         findByEmail: jest.fn().mockReturnValueOnce(user),
       };
