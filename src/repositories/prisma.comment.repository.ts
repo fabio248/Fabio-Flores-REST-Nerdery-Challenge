@@ -66,7 +66,13 @@ export default class PrismaCommentRepository implements CommentRepository {
     });
   }
   findById(id: number): Promise<Comment | null> {
-    return this.prisma.comment.findUnique({ where: { id } });
+    return this.prisma.comment.findUnique({
+      where: { id },
+      include: {
+        author: { select: { userName: true } },
+        post: { select: { title: true, description: true } },
+      },
+    });
   }
   create(input: Prisma.CommentCreateInput): Promise<Comment> {
     return this.prisma.comment.create({ data: input });

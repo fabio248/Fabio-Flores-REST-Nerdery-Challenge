@@ -1,15 +1,19 @@
 import CommentService from '../../src/services/comment.service';
 import PrismaCommentRepository from '../../src/repositories/prisma.comment.repository';
 import { PartialMock } from '../utils/generic';
-import { forbidden, notFound } from '@hapi/boom';
+import { badData, forbidden, notFound } from '@hapi/boom';
 import {
   buildComment,
+  buildReactionComment,
+  buildUser,
   getDescription,
   getId,
   getIsDraft,
+  getUsername,
 } from '../utils/generate';
 import { Comment } from '@prisma/client';
 import { CommentRepository } from '../../src/repositories/repository.interface';
+import { CreateUsersLikeComments } from '../../src/types/post';
 describe('CommentService', () => {
   let commentService: CommentService;
   let mockCommentRepository: PartialMock<PrismaCommentRepository>;
@@ -18,6 +22,7 @@ describe('CommentService', () => {
   const authorId = getId({ min: 1, max: 100 });
   const postId = getId({ min: 1, max: 100 });
   const commentId = getId();
+  const reaction = buildReactionComment() as CreateUsersLikeComments;
 
   const comment = buildComment({
     id: commentId,
@@ -32,6 +37,7 @@ describe('CommentService', () => {
         jest.clearAllMocks();
       });
       it('should create a new comment', async () => {
+        expect.assertions(4);
         mockCommentRepository = {
           create: jest.fn().mockResolvedValueOnce(comment),
         };
@@ -74,7 +80,7 @@ describe('CommentService', () => {
 
   describe('findOne', () => {
     it('should return a comment that exits search by id', async () => {
-      //   expect.assertions(4);
+      expect.assertions(4);
       mockCommentRepository = {
         findById: jest.fn().mockResolvedValueOnce(comment),
       };
@@ -92,7 +98,7 @@ describe('CommentService', () => {
     });
 
     it('throw an error when comment does npostot exist ', async () => {
-      //   expect.assertions(3);
+      expect.assertions(3);
       mockCommentRepository = {
         findById: jest.fn().mockResolvedValueOnce(null),
       };
@@ -223,6 +229,7 @@ describe('CommentService', () => {
     });
 
     it('throw an error if the comment is not owned by the user', async () => {
+      expect.assertions(4);
       mockCommentRepository = {
         findById: jest
           .fn()
@@ -242,6 +249,7 @@ describe('CommentService', () => {
       expect(mockCommentRepository.delete).not.toHaveBeenCalled();
     });
     it('throw an error when post does not exits', async () => {
+      expect.assertions(4);
       mockCommentRepository = {
         findById: jest.fn().mockReturnValueOnce(null),
         delete: jest.fn().mockReturnValueOnce(comment),
@@ -257,6 +265,92 @@ describe('CommentService', () => {
       expect(mockCommentRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockCommentRepository.findById).toHaveBeenCalledWith(postId);
       expect(mockCommentRepository.delete).not.toHaveBeenCalled();
+    });
+  });
+  describe('createReaction', () => {
+    it('should create a new reaction to a comment', async () => {
+      // expect.assertions(6);
+      const comment = buildComment({
+        id: reaction.commentId,
+        authorId: reaction.userId,
+      }) as Comment;
+      mockCommentRepository = {
+        findById: jest.fn().mockReturnValueOnce(comment),
+        createReaction: jest.fn().mockReturnValueOnce(reaction),
+        findReactionByUserIdAndCommentId: jest.fn().mockReturnValueOnce(null),
+      };
+
+      commentService = new CommentService(
+        mockCommentRepository as unknown as PrismaCommentRepository,
+      );
+
+      const actual = await commentService.createReaction(reaction);
+
+      expect(actual).toHaveProperty('commentId', comment.id);
+      expect(actual).toHaveProperty('userId', comment.authorId);
+      expect(actual).toHaveProperty('type', reaction.type);
+      expect(mockCommentRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockCommentRepository.findById).toHaveBeenCalledWith(
+        reaction.commentId,
+      );
+      expect(mockCommentRepository.createReaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('throw an error when the user has already liked the comment', async () => {
+      const comment = buildReactionComment({
+        id: reaction.commentId,
+        authorId: reaction.userId,
+      });
+      mockCommentRepository = {
+        findById: jest.fn().mockReturnValueOnce(comment),
+        findReactionByUserIdAndCommentId: jest
+          .fn()
+          .mockReturnValueOnce(reaction),
+        createReaction: jest.fn().mockReturnValueOnce(reaction),
+      };
+
+      commentService = new CommentService(
+        mockCommentRepository as unknown as PrismaCommentRepository,
+      );
+
+      const expectedError = badData('You have already liked the comment');
+
+      const actual = () => commentService.createReaction(reaction);
+
+      expect(actual).rejects.toEqual(expectedError);
+      expect(mockCommentRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockCommentRepository.createReaction).not.toHaveBeenCalled();
+    });
+  });
+  describe('findCommentWithLikesAndUser', () => {
+    const commentWithUserWhoLikedIt = buildComment({
+      id: getId({ min: 1, max: 100 }),
+      users: {
+        1: buildUser({ username: getUsername() }),
+        2: buildUser({ username: getUsername() }),
+      },
+    }) as Comment;
+    it('should return a comment with user who liked it', async () => {
+      mockCommentRepository = {
+        findById: jest.fn().mockReturnValueOnce(comment),
+        findCommentWithLikesAndUser: jest
+          .fn()
+          .mockReturnValueOnce(commentWithUserWhoLikedIt),
+      };
+
+      commentService = new CommentService(
+        mockCommentRepository as CommentRepository,
+      );
+
+      const actual = await commentService.findCommentWithLikesAndUser(
+        commentWithUserWhoLikedIt.id!,
+      );
+
+      expect(actual).toEqual(commentWithUserWhoLikedIt);
+      expect(mockCommentRepository.findById).toHaveBeenCalledTimes(1);
+      expect(
+        mockCommentRepository.findCommentWithLikesAndUser,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

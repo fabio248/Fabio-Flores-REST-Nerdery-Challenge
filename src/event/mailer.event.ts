@@ -8,11 +8,11 @@ export async function accountEmailConfirmationEvent({
   id,
 }: SendMailConfirmationType): Promise<void> {
   const token = await userService.generateConfimationToken(id);
-  try {
-    await mailerService.sendMail({
-      to: email,
-      subject: 'Confirmation Account Micro Blog',
-      html: `
+
+  await mailerService.sendMail({
+    to: email,
+    subject: 'Confirmation Account Micro Blog',
+    html: `
               <body>
                   <h3>Confirmation account </h3>
                   <p> This is your confirmation token
@@ -21,8 +21,5 @@ export async function accountEmailConfirmationEvent({
                   <p>This token expire in 15 min</p>
               </body>
             `,
-    });
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }

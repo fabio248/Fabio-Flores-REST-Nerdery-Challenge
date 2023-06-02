@@ -1,6 +1,8 @@
-import { Comment } from '@prisma/client';
+import { Comment, UsersLikeComments } from '@prisma/client';
 import { CommentRepository } from '../repositories/repository.interface';
-import { forbidden, notFound } from '@hapi/boom';
+import { badData, forbidden, notFound } from '@hapi/boom';
+import { CreateUsersLikeComments } from '../types/post';
+import { messageDelete } from '../types/generic';
 
 export default class CommentService {
   constructor(private readonly commentRepo: CommentRepository) {}
@@ -23,7 +25,7 @@ export default class CommentService {
     return postAreNotDraft;
   }
 
-  async findOne(commentId: number) {
+  async findOne(commentId: number): Promise<Comment> {
     const comment = await this.commentRepo.findById(commentId);
 
     if (!comment) {
@@ -33,7 +35,11 @@ export default class CommentService {
     return comment;
   }
 
-  async update(commetId: number, userId: number, input: Partial<Comment>) {
+  async update(
+    commetId: number,
+    userId: number,
+    input: Partial<Comment>,
+  ): Promise<Comment> {
     const comment = await this.findOne(commetId);
 
     if (comment.authorId !== userId) {
@@ -45,7 +51,7 @@ export default class CommentService {
     return updatedComment;
   }
 
-  async delete(commentId: number, userId: number) {
+  async delete(commentId: number, userId: number): Promise<messageDelete> {
     const comment = await this.findOne(commentId);
 
     if (comment.authorId !== userId) {
@@ -55,5 +61,37 @@ export default class CommentService {
     await this.commentRepo.delete(commentId);
 
     return { message: `deleted comment with id: ${commentId}` };
+  }
+
+  async createReaction(
+    input: CreateUsersLikeComments,
+  ): Promise<UsersLikeComments> {
+    await this.findOne(input.commentId);
+
+    const reaction = await this.findReactionByUserAndPost(
+      input.commentId,
+      input.userId,
+    );
+
+    if (reaction) {
+      throw badData('You have already liked the comment');
+    }
+
+    const newReaction = await this.commentRepo.createReaction(input);
+
+    return newReaction;
+  }
+
+  async findReactionByUserAndPost(commentId: number, userId: number) {
+    return this.commentRepo.findReactionByUserIdAndCommentId(commentId, userId);
+  }
+
+  async findCommentWithLikesAndUser(postId: number): Promise<Comment> {
+    await this.findOne(postId);
+
+    const commentWithUserWhoLikedIt =
+      await this.commentRepo.findCommentWithLikesAndUser(postId);
+
+    return commentWithUserWhoLikedIt!;
   }
 }

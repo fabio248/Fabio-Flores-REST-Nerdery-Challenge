@@ -7,7 +7,11 @@ import {
   getPostSchema,
   updatePostSchema,
 } from '../schemas/post.schema';
-import { postController } from '../dependencies/dependencies';
+import {
+  commentController,
+  postController,
+} from '../dependencies/dependencies';
+import { createCommentSchema } from '../schemas/comment.schema';
 
 export const postRouter = Router();
 
@@ -49,4 +53,15 @@ postRouter
   .get(
     validateSchemaHandler(getPostSchema, 'params'),
     postController.findPostWithUserWhoLikedIt.bind(postController),
+  );
+
+postRouter
+  .route('/:postId/comments')
+  .all(passport.authenticate('jwt', { session: false }))
+  .post(
+    [
+      validateSchemaHandler(getPostSchema, 'params'),
+      validateSchemaHandler(createCommentSchema, 'body'),
+    ],
+    commentController.create.bind(commentController),
   );
