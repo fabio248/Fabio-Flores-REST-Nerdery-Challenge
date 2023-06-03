@@ -4,6 +4,7 @@ import { PartialMock } from '../utils/generic';
 import { badData, forbidden, notFound } from '@hapi/boom';
 import {
   buildComment,
+  buildPost,
   buildReactionComment,
   buildUser,
   getDescription,
@@ -11,20 +12,22 @@ import {
   getIsDraft,
   getUsername,
 } from '../utils/generate';
-import { Comment } from '@prisma/client';
+import { Comment, Post } from '@prisma/client';
 import { CommentRepository } from '../../src/repositories/repository.interface';
 import { CreateUsersLikeComments } from '../../src/types/post';
+import PostService from '../../src/services/post.service';
 
 describe('CommentService', () => {
   let commentService: CommentService;
   let mockCommentRepository: PartialMock<PrismaCommentRepository>;
+  let mockPostService: PartialMock<PostService>;
   const forbiddenError = forbidden('it is not your comment');
   const notFoundError = notFound('comment not found');
   const authorId = getId({ min: 1, max: 100 });
   const postId = getId({ min: 1, max: 100 });
   const commentId = getId();
   const reaction = buildReactionComment() as CreateUsersLikeComments;
-
+  const post = buildPost() as Post;
   const comment = buildComment({
     id: commentId,
     authorId,
@@ -43,8 +46,13 @@ describe('CommentService', () => {
         mockCommentRepository = {
           create: jest.fn().mockResolvedValueOnce(comment),
         };
+
+        mockPostService = {
+          findOne: jest.fn().mockResolvedValueOnce(post),
+        };
         commentService = new CommentService(
           mockCommentRepository as CommentRepository,
+          mockPostService as unknown as PostService,
         );
 
         const actual = await commentService.create(comment, authorId, postId);
@@ -71,6 +79,7 @@ describe('CommentService', () => {
       };
       commentService = new CommentService(
         mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = await commentService.all();
@@ -88,7 +97,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = await commentService.findOne(commentId);
@@ -106,7 +116,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = () => commentService.findOne(commentId);
@@ -137,7 +148,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = await commentService.update(
@@ -168,7 +180,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = () =>
@@ -192,7 +205,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = () =>
@@ -221,7 +235,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
       const actual = await commentService.delete(commentId, authorId);
 
@@ -242,7 +257,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = () => commentService.delete(postId, authorId);
@@ -260,7 +276,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = () => commentService.delete(postId, authorId);
@@ -286,7 +303,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = await commentService.createReaction(reaction);
@@ -316,7 +334,8 @@ describe('CommentService', () => {
       };
 
       commentService = new CommentService(
-        mockCommentRepository as unknown as PrismaCommentRepository,
+        mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const expectedError = badData('You have already liked the comment');
@@ -348,6 +367,7 @@ describe('CommentService', () => {
 
       commentService = new CommentService(
         mockCommentRepository as CommentRepository,
+        mockPostService as unknown as PostService,
       );
 
       const actual = await commentService.findCommentWithLikesAndUser(

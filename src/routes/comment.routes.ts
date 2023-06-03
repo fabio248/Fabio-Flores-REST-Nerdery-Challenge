@@ -11,6 +11,10 @@ import { commentController } from '../dependencies/dependencies';
 export const commentRouter = Router();
 
 commentRouter
+  .route('/')
+  .get(commentController.findMany.bind(commentController));
+
+commentRouter
   .route('/:commentId')
   .all(passport.authenticate('jwt', { session: false }))
   .get(

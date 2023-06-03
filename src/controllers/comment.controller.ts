@@ -11,6 +11,7 @@ export default class CommentController {
       const { postId } = req.params;
       const input = req.body;
       const user = req.user as JwtPayload;
+
       const newComment = await this.commentService.create(
         input,
         +user.sub!,

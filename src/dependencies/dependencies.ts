@@ -41,7 +41,7 @@ if (config.enviroment === 'development') {
   postController = new PostController(postService);
 
   prismaCommentRepo = new PrismaCommentRepository(dbPrisma);
-  commentService = new CommentService(prismaCommentRepo);
+  commentService = new CommentService(prismaCommentRepo, postService);
   commentController = new CommentController(commentService);
 }
 

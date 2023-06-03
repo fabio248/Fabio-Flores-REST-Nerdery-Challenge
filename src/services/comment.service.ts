@@ -3,12 +3,19 @@ import { CommentRepository } from '../repositories/repository.interface';
 import { badData, forbidden, notFound } from '@hapi/boom';
 import { CreateUsersLikeComments } from '../types/post';
 import { messageDelete } from '../types/generic';
+import PostService from './post.service';
 
 export default class CommentService {
-  constructor(private readonly commentRepo: CommentRepository) {}
+  constructor(
+    private readonly commentRepo: CommentRepository,
+    private readonly postService: PostService,
+  ) {}
 
   async create(input: Comment, authorId: number, postId: number) {
+    //check if exists the post
+    await this.postService.findOne(postId);
     const data = { ...input, authorId, postId };
+
     const comment = this.commentRepo.create(data);
 
     return comment;
