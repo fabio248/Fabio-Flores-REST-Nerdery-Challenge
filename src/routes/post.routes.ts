@@ -44,7 +44,7 @@ postRouter
   );
 
 postRouter
-  .route('/:postId/likes')
+  .route('/:postId/reactions')
   .all(passport.authenticate('jwt', { session: false }))
   .post(
     validateSchemaHandler(createReactioPostSchema, 'body'),

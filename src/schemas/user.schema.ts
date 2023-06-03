@@ -20,7 +20,8 @@ export const createUserSchema = Joi.object({
   email: email.required(),
   password: password.required(),
   role,
-  verifyToken,
+  isPublicEmail,
+  isPublicName,
 });
 
 export const updateUserSchema = Joi.object({
