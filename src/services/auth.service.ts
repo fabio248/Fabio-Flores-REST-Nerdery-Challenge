@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { hashSync } from 'bcrypt';
 import { User } from '@prisma/client';
 import UserService from './user.service';
+import { forbidden } from '@hapi/boom';
 
 export class AuthService {
   constructor(private readonly userService: UserService) {}
@@ -17,10 +18,18 @@ export class AuthService {
   }
 
   async createAccessToken(user: User): Promise<string> {
+    const ACCOUNT_IS_NOT_VERIFIED = false;
+
+    if (user.isVerified === ACCOUNT_IS_NOT_VERIFIED) {
+      throw forbidden('you must verify your account');
+    }
+
     const accessToken = this.signToken(user);
+
     await this.userService.update(user.id, {
       accessToken: hashSync(accessToken, 10),
     });
+
     return accessToken;
   }
 }

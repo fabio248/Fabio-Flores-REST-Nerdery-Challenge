@@ -9,6 +9,7 @@ import { CreateUsersLikePosts } from '../types/post';
 
 export default class PrismaPostRepository implements PostRepository {
   constructor(private readonly prisma: PrismaClient) {}
+
   async updateAmountReaction(input: CreateUsersLikePosts): Promise<void> {
     const post = await this.findById(input.postId);
     if (input.type === 'LIKE') {
@@ -49,6 +50,7 @@ export default class PrismaPostRepository implements PostRepository {
             userName: true,
           },
         },
+        comments: true,
       },
     });
   }

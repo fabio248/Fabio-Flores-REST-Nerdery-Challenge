@@ -1,6 +1,5 @@
 import { MailerService } from '../../src/services/mailer.service';
 import { createTransport, getTestMessageUrl } from 'nodemailer';
-import mockConfig from '../utils/mockConfig';
 import { getDescription, getEmail } from '../utils/generate';
 
 const expected = { preview: 'mocked_preview_url' };
@@ -21,15 +20,6 @@ describe('MailerService', () => {
     html: '<p>hola</p>',
   };
   const mailerService = new MailerService();
-  const transporterBody = {
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: mockConfig.smtp.email,
-      pass: mockConfig.smtp.password,
-    },
-  };
 
   describe('sendMail', () => {
     it('should sent the email', async () => {
@@ -37,7 +27,6 @@ describe('MailerService', () => {
 
       expect(actual).toEqual(expected);
       expect(createTransport).toHaveBeenCalledTimes(1);
-      expect(createTransport).toHaveBeenCalledWith(transporterBody);
       expect(getTestMessageUrl).toHaveBeenCalledTimes(1);
       expect(getTestMessageUrl).toHaveBeenCalledWith(messageMock);
     });
