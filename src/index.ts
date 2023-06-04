@@ -7,6 +7,7 @@ import routerApi from './routes';
 import {
   errorValidateHandler,
   genericErrorHandler,
+  jwtErrorHandler,
 } from './middleware/error.middleware';
 import { initEvents } from './event';
 
@@ -21,6 +22,7 @@ import './utils/auth/index';
 routerApi(app);
 
 app.use(errorValidateHandler);
+app.use(jwtErrorHandler);
 app.use(genericErrorHandler);
 
 app.listen(config.port, () => {

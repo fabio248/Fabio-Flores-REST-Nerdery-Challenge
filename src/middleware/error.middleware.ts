@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Boom } from '@hapi/boom';
+import { VerifyErrors } from 'jsonwebtoken';
 
 export function errorValidateHandler(
   error: Boom<unknown>,
@@ -23,5 +24,17 @@ export function genericErrorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  res.status(500).json({ error: err.name, message: err.message });
+  res.status(500).json({ error: err.name, message: 'Something wrong!' });
+}
+
+export function jwtErrorHandler(
+  err: VerifyErrors,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
+  res.status(401).json({
+    name: err.name || 'jwt invalid',
+    message: err.message || 'something wrong with token',
+  });
 }
