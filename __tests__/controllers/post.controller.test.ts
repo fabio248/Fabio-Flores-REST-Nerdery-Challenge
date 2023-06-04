@@ -68,7 +68,7 @@ describe('PostController', () => {
         mockPostService as unknown as PostService,
       );
 
-      await postController.create(req as any, res, next);
+      await postController.create(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(error);
@@ -190,18 +190,19 @@ describe('PostController', () => {
     const req = buildReq({ params: { postId } }) as unknown as Request;
     const res = buildRes();
     const next = buildNext();
-    it('should delete a post', async () => {
+    message: `post deleted with id: ${postId}`;
+    const message = it('should delete a post', async () => {
       expect.assertions(5);
       mockPostService = {
         delete: jest.fn().mockResolvedValueOnce({
-          message: `post updated with id: ${postId}`,
+          message,
         }),
       };
       postController = new PostController(
         mockPostService as unknown as PostService,
       );
       const expected = {
-        message: `post updated with id: ${postId}`,
+        message,
       };
 
       await postController.delete(req, res, next);
