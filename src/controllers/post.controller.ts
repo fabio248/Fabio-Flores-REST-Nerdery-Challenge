@@ -6,6 +6,7 @@ import { CreateUsersLikePosts } from '../types/post';
 
 export default class PostController {
   constructor(private readonly postService: PostService) {}
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const input = req.body;

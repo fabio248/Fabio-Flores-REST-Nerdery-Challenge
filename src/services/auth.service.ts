@@ -1,19 +1,22 @@
 import config from '../config';
 import { PayloadJwt } from '../types/generic';
-import jwt from 'jsonwebtoken';
+import Jwt from 'jsonwebtoken';
 import { hashSync } from 'bcrypt';
 import { User } from '@prisma/client';
 import UserService from './user.service';
-import { forbidden } from '@hapi/boom';
+import { forbidden, unauthorized } from '@hapi/boom';
 
 export class AuthService {
   constructor(private readonly userService: UserService) {}
+
   signToken(user: User): string {
     const payload: PayloadJwt = {
       sub: user.id,
       role: user.role,
     };
-    const accessToken: string = jwt.sign(payload, config.jwtSecret);
+    const accessToken: string = Jwt.sign(payload, config.jwtSecret, {
+      expiresIn: '240min',
+    });
     return accessToken;
   }
 
@@ -31,5 +34,17 @@ export class AuthService {
     });
 
     return accessToken;
+  }
+
+  async logout(accessToken: string): Promise<string> {
+    const isVerify = await this.userService.isCorrectAccessToken(accessToken);
+
+    if (!isVerify) {
+      throw unauthorized('invalid token');
+    }
+
+    const res = await this.userService.deleteAccessToken(accessToken);
+
+    return res;
   }
 }

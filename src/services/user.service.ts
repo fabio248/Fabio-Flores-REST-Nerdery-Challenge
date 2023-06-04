@@ -142,7 +142,7 @@ export default class UserService {
 
     const user = await this.userRepo.findById(+payload!.sub!);
 
-    if (!user) {
+    if (!user?.accessToken) {
       return USER_UNAUTHORIZED;
     }
 
@@ -153,6 +153,14 @@ export default class UserService {
     }
 
     return USER_AUTHROIZED;
+  }
+
+  async deleteAccessToken(accessToken: string): Promise<string> {
+    const payload = Jwt.decode(accessToken) as JwtPayload;
+
+    await this.userRepo.update(+payload.sub!, { accessToken: null });
+
+    return 'logout successfully';
   }
 
   private async findByEmail(email: string): Promise<User | null> {

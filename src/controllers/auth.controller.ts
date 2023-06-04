@@ -14,4 +14,18 @@ export default class AuthController {
       next(error);
     }
   }
+
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { authorization } = req.headers;
+
+      const accessToken = authorization!.split(' ');
+
+      const response = await this.authService.logout(accessToken[1]);
+
+      res.status(200).json({ message: response });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
