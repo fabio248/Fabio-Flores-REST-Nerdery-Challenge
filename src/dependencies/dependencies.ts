@@ -14,11 +14,17 @@ import PostController from '../controllers/post.controller';
 import CommentService from '../services/comment.service';
 import CommentController from '../controllers/comment.controller';
 import PrismaCommentRepository from '../repositories/prisma.comment.repository';
+import UserController from '../controllers/user.controller';
+import AuthController from '../controllers/auth.controller';
 
 let prismaUserRepo;
 let userService: UserService;
-let mailerService: MailerService;
+let userController: UserController;
+
 let authService: AuthService;
+let authController: AuthController;
+
+let mailerService: MailerService;
 
 let prismaPostRepo: PostRepository;
 let postService: PostService;
@@ -31,10 +37,12 @@ let commentController: CommentController;
 if (config.enviroment === 'development') {
   prismaUserRepo = new PrismaUserRepository(dbPrisma);
   userService = new UserService(prismaUserRepo);
+  userController = new UserController(userService);
 
   mailerService = new MailerService();
 
   authService = new AuthService(userService);
+  authController = new AuthController(authService);
 
   prismaPostRepo = new PrismaPostRepository(dbPrisma);
   postService = new PostService(prismaPostRepo);
@@ -47,8 +55,10 @@ if (config.enviroment === 'development') {
 
 export {
   userService,
+  userController,
   mailerService,
   authService,
+  authController,
   postService,
   postController,
   commentController,

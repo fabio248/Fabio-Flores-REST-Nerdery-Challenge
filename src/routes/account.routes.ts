@@ -5,34 +5,31 @@ import {
   createUserSchema,
   updateUserSchema,
 } from '../schemas/user.schema';
-import {
-  confirmateAccount,
-  createUser,
-  deleteUser,
-  findUser,
-  updateUser,
-} from '../controllers/user.controller';
 import passport from 'passport';
+import { userController } from '../dependencies/dependencies';
 
 const accountRouter = Router();
 
 accountRouter.post(
   '/',
   validateSchemaHandler(createUserSchema, 'body'),
-  createUser,
+  userController.create.bind(userController),
 );
 
 accountRouter.post(
   '/confirm-account',
   validateSchemaHandler(confirmAccountSchema, 'params'),
-  confirmateAccount,
+  userController.confirmateAccount.bind(userController),
 );
 
 accountRouter
   .route('/me')
   .all(passport.authenticate('jwt', { session: false }))
-  .get(findUser)
-  .patch([validateSchemaHandler(updateUserSchema, 'body')], updateUser)
-  .delete(deleteUser);
+  .get(userController.findOne.bind(userController))
+  .patch(
+    [validateSchemaHandler(updateUserSchema, 'body')],
+    userController.update.bind(userController),
+  )
+  .delete(userController.delete.bind(userController));
 
 export { accountRouter };

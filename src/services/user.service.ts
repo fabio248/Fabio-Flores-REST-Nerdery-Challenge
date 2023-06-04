@@ -72,7 +72,7 @@ export default class UserService {
     return userWithOutSensitiveInfo;
   }
 
-  async detele(id: number): Promise<object> {
+  async detele(id: number): Promise<messageDelete> {
     //Check if exits the unser
     await this.findOne(id);
 
