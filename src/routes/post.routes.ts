@@ -12,14 +12,18 @@ import {
   postController,
 } from '../dependencies/dependencies';
 import { createCommentSchema } from '../schemas/comment.schema';
+import { authenticateTokenMiddleware } from '../middleware/verifyJwtToken.middleware';
 
 export const postRouter = Router();
 
 postRouter
   .route('/')
   .post(
-    passport.authenticate('jwt', { session: false }),
-    validateSchemaHandler(createPostSchema, 'body'),
+    [
+      authenticateTokenMiddleware,
+      passport.authenticate('jwt', { session: false }),
+      validateSchemaHandler(createPostSchema, 'body'),
+    ],
     postController.create.bind(postController),
   )
   .get(postController.findMany.bind(postController));
@@ -32,6 +36,7 @@ postRouter
   )
   .patch(
     [
+      authenticateTokenMiddleware,
       passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getPostSchema, 'params'),
       validateSchemaHandler(updatePostSchema, 'body'),
@@ -40,6 +45,7 @@ postRouter
   )
   .delete(
     [
+      authenticateTokenMiddleware,
       passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getPostSchema, 'params'),
     ],
@@ -49,8 +55,11 @@ postRouter
 postRouter
   .route('/:postId/reactions')
   .post(
-    passport.authenticate('jwt', { session: false }),
-    validateSchemaHandler(createReactioPostSchema, 'body'),
+    [
+      authenticateTokenMiddleware,
+      passport.authenticate('jwt', { session: false }),
+      validateSchemaHandler(createReactioPostSchema, 'body'),
+    ],
     postController.createReaction.bind(postController),
   )
   .get(
@@ -60,7 +69,10 @@ postRouter
 
 postRouter
   .route('/:postId/comments')
-  .all(passport.authenticate('jwt', { session: false }))
+  .all(
+    authenticateTokenMiddleware,
+    passport.authenticate('jwt', { session: false }),
+  )
   .post(
     [
       validateSchemaHandler(getPostSchema, 'params'),

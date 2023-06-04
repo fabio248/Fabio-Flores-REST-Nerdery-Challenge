@@ -9,6 +9,7 @@ import { USER_EMAIL_CONFIRMATION } from '../event/mailer.event';
 import { createNewJsonWithoutFields } from '../utils/general.utils';
 import { User } from '@prisma/client';
 import { messageDelete } from '../types/generic';
+import bcrypt from 'bcrypt';
 
 export default class UserService {
   constructor(private readonly userRepo: UserRepository) {}
@@ -132,6 +133,26 @@ export default class UserService {
     const userWithOutSensitiveInfo = this.createUserWithOutSensitiveInfo(user);
 
     return userWithOutSensitiveInfo;
+  }
+
+  async isCorrectAccessToken(accessToken: string): Promise<boolean> {
+    const USER_UNAUTHORIZED = false;
+    const USER_AUTHROIZED = true;
+    const payload = Jwt.decode(accessToken);
+
+    const user = await this.userRepo.findById(+payload!.sub!);
+
+    if (!user) {
+      return USER_UNAUTHORIZED;
+    }
+
+    const isMatch = await bcrypt.compare(accessToken, user!.accessToken!);
+
+    if (!isMatch) {
+      return USER_UNAUTHORIZED;
+    }
+
+    return USER_AUTHROIZED;
   }
 
   private async findByEmail(email: string): Promise<User | null> {

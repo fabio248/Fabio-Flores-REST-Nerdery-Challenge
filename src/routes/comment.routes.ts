@@ -7,6 +7,7 @@ import {
   updateCommentSchema,
 } from '../schemas/comment.schema';
 import { commentController } from '../dependencies/dependencies';
+import { authenticateTokenMiddleware } from '../middleware/verifyJwtToken.middleware';
 
 export const commentRouter = Router();
 
@@ -14,25 +15,27 @@ commentRouter
   .route('/')
   .get(commentController.findMany.bind(commentController));
 
+commentRouter.get(
+  ':commentId',
+  [validateSchemaHandler(getCommentSchema, 'params')],
+  commentController.findOne.bind(commentController),
+);
+
 commentRouter
   .route('/:commentId')
-  .get(
-    [validateSchemaHandler(getCommentSchema, 'params')],
-    commentController.findOne.bind(commentController),
+  .all(
+    authenticateTokenMiddleware,
+    passport.authenticate('jwt', { session: false }),
   )
   .patch(
     [
-      passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getCommentSchema, 'params'),
       validateSchemaHandler(updateCommentSchema, 'body'),
     ],
     commentController.update.bind(commentController),
   )
   .delete(
-    [
-      passport.authenticate('jwt', { session: false }),
-      validateSchemaHandler(getCommentSchema, 'params'),
-    ],
+    [validateSchemaHandler(getCommentSchema, 'params')],
     commentController.delete.bind(commentController),
   );
 
@@ -44,6 +47,7 @@ commentRouter
   )
   .post(
     [
+      authenticateTokenMiddleware,
       passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getCommentSchema, 'params'),
       validateSchemaHandler(createReactioCommentSchema, 'body'),
