@@ -16,25 +16,28 @@ commentRouter
 
 commentRouter
   .route('/:commentId')
-  .all(passport.authenticate('jwt', { session: false }))
   .get(
     [validateSchemaHandler(getCommentSchema, 'params')],
     commentController.findOne.bind(commentController),
   )
   .patch(
     [
+      passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getCommentSchema, 'params'),
       validateSchemaHandler(updateCommentSchema, 'body'),
     ],
     commentController.update.bind(commentController),
   )
   .delete(
-    [validateSchemaHandler(getCommentSchema, 'params')],
+    [
+      passport.authenticate('jwt', { session: false }),
+      validateSchemaHandler(getCommentSchema, 'params'),
+    ],
     commentController.delete.bind(commentController),
   );
 
 commentRouter
-  .route('/:commentId/reaction')
+  .route('/:commentId/reactions')
   .get(
     [validateSchemaHandler(getCommentSchema, 'params')],
     commentController.findCommentWithUserWhoLikedIt.bind(commentController),

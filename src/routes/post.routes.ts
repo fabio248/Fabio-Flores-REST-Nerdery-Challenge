@@ -26,27 +26,30 @@ postRouter
 
 postRouter
   .route('/:postId')
-  .all(passport.authenticate('jwt', { session: false }))
   .get(
     validateSchemaHandler(getPostSchema, 'params'),
     postController.findOne.bind(postController),
   )
   .patch(
     [
+      passport.authenticate('jwt', { session: false }),
       validateSchemaHandler(getPostSchema, 'params'),
       validateSchemaHandler(updatePostSchema, 'body'),
     ],
     postController.update.bind(postController),
   )
   .delete(
-    [validateSchemaHandler(getPostSchema, 'params')],
+    [
+      passport.authenticate('jwt', { session: false }),
+      validateSchemaHandler(getPostSchema, 'params'),
+    ],
     postController.delete.bind(postController),
   );
 
 postRouter
   .route('/:postId/reactions')
-  .all(passport.authenticate('jwt', { session: false }))
   .post(
+    passport.authenticate('jwt', { session: false }),
     validateSchemaHandler(createReactioPostSchema, 'body'),
     postController.createReaction.bind(postController),
   )
