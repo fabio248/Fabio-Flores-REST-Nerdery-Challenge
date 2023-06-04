@@ -4,7 +4,7 @@ import { CreateUserEntry } from '../../src/types/user';
 import { emitter } from '../../src/event';
 import { badData, notFound, unauthorized } from '@hapi/boom';
 import { UserRepository } from '../../src/repositories/repository.interface';
-import jwt from 'jsonwebtoken';
+import Jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { PartialMock } from '../utils/generic';
 import {
@@ -328,7 +328,7 @@ describe('UserService', () => {
     it('should return token', async () => {
       expect.assertions(2);
       const token = getToken;
-      const spySignJwt = jest.spyOn(jwt, 'sign');
+      const spySignJwt = jest.spyOn(Jwt, 'sign');
       spySignJwt.mockImplementation(() => token);
 
       prismaUserRepoMock = {
@@ -348,7 +348,7 @@ describe('UserService', () => {
   });
 
   describe('findUserWithAllInfo', () => {
-    const spyVerifyJwt = jest.spyOn(jwt, 'verify');
+    const spyVerifyJwt = jest.spyOn(Jwt, 'verify');
     spyVerifyJwt.mockImplementation(() => ({
       sub: getId(),
     }));
@@ -488,6 +488,94 @@ describe('UserService', () => {
         userService.authenticateUser(email, incorrectPassword);
 
       expect(actual).rejects.toEqual(expected);
+    });
+  });
+
+  describe('isCorrectAccessToken', () => {
+    const spyBcrypt = jest.spyOn(bcrypt, 'compare');
+    const accessToken = getToken;
+    const spyVerifyJwt = jest.spyOn(Jwt, 'verify');
+    const userId = getId();
+    const payload = { sub: userId } as unknown as Jwt.JwtPayload;
+
+    it('should return true when access token is correct', async () => {
+      const expected = true;
+      const user = buildUser({ id: userId, accessToken });
+      prismaUserRepoMock = {
+        findById: jest.fn().mockReturnValueOnce(user),
+      };
+
+      userService = new UserService(prismaUserRepoMock as UserRepository);
+      spyVerifyJwt.mockImplementation(() => payload);
+      spyBcrypt.mockImplementation(() => expected);
+
+      const actual = await userService.isCorrectAccessToken(accessToken);
+
+      expect(actual).toEqual(expected);
+      expect(spyBcrypt).toHaveBeenCalledTimes(1);
+      expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return false when user does not have access token store in database', async () => {
+      const expected = false;
+      const user = buildUser({ id: userId, accessToken: null });
+
+      prismaUserRepoMock = {
+        findById: jest.fn().mockReturnValueOnce(user),
+      };
+
+      userService = new UserService(prismaUserRepoMock as UserRepository);
+      spyVerifyJwt.mockImplementation(() => payload);
+
+      const actual = await userService.isCorrectAccessToken(accessToken);
+
+      expect(actual).toEqual(expected);
+      expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
+      expect(spyBcrypt).not.toHaveBeenCalled();
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return false when access token is incorrect', async () => {
+      const expected = false;
+      const user = buildUser({ id: userId, accessToken });
+
+      prismaUserRepoMock = {
+        findById: jest.fn().mockReturnValueOnce(user),
+      };
+
+      userService = new UserService(prismaUserRepoMock as UserRepository);
+      spyVerifyJwt.mockImplementation(() => payload);
+      spyBcrypt.mockImplementation(() => expected);
+
+      const actual = await userService.isCorrectAccessToken(accessToken);
+
+      expect(actual).toEqual(expected);
+      expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
+      expect(spyBcrypt).toHaveBeenCalledTimes(1);
+      expect(prismaUserRepoMock.findById).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('deleteAccessToken', () => {
+    const accessToken = getToken;
+    const spyVerifyJwt = jest.spyOn(Jwt, 'verify');
+    const userId = getId();
+    const payload = { sub: userId } as unknown as Jwt.JwtPayload;
+
+    it('should delete access token from database', async () => {
+      prismaUserRepoMock = {
+        update: jest.fn(),
+      };
+      userService = new UserService(prismaUserRepoMock as UserRepository);
+      spyVerifyJwt.mockImplementation(() => payload);
+      const expected = 'logout successfully';
+
+      const actual = await userService.deleteAccessToken(accessToken);
+
+      expect(actual).toEqual(expected);
+      expect(spyVerifyJwt).toHaveBeenCalledTimes(1);
+      expect(prismaUserRepoMock.update).toHaveBeenCalledTimes(1);
     });
   });
 });

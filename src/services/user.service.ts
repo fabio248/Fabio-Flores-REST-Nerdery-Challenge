@@ -2,7 +2,7 @@ import { UserRepository } from '../repositories/repository.interface';
 import { CreateUserEntry, UserWithOutSensitiveInfo } from '../types/user';
 import { compareSync, hashSync } from 'bcrypt';
 import { badData, notFound, unauthorized } from '@hapi/boom';
-import Jwt, { JwtPayload } from 'jsonwebtoken';
+import Jwt from 'jsonwebtoken';
 import config from '../config';
 import { emitter } from '../event';
 import { USER_EMAIL_CONFIRMATION } from '../event/mailer.event';
@@ -92,10 +92,10 @@ export default class UserService {
   }
 
   async confirmateAccount(token: string): Promise<messageDelete> {
-    const payload: JwtPayload = Jwt.verify(
+    const payload: Jwt.JwtPayload = Jwt.verify(
       token,
       config.jwtSecret,
-    ) as JwtPayload;
+    ) as Jwt.JwtPayload;
 
     const user: User = await this.findUserWithAllInfo(+payload.sub!);
 
@@ -138,11 +138,11 @@ export default class UserService {
   async isCorrectAccessToken(accessToken: string): Promise<boolean> {
     const USER_UNAUTHORIZED = false;
     const USER_AUTHROIZED = true;
-    const payload = Jwt.decode(accessToken);
+    const payload = Jwt.verify(accessToken, config.jwtSecret);
 
     const user = await this.userRepo.findById(+payload!.sub!);
 
-    if (!user?.accessToken) {
+    if (!user!.accessToken) {
       return USER_UNAUTHORIZED;
     }
 
@@ -156,7 +156,7 @@ export default class UserService {
   }
 
   async deleteAccessToken(accessToken: string): Promise<string> {
-    const payload = Jwt.decode(accessToken) as JwtPayload;
+    const payload = Jwt.verify(accessToken, config.jwtSecret) as Jwt.JwtPayload;
 
     await this.userRepo.update(+payload.sub!, { accessToken: null });
 
