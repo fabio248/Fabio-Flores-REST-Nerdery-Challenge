@@ -138,6 +138,7 @@ export default class UserService {
   async isCorrectAccessToken(accessToken: string): Promise<boolean> {
     const USER_UNAUTHORIZED = false;
     const USER_AUTHROIZED = true;
+
     const payload = Jwt.verify(accessToken, config.jwtSecret);
 
     const user = await this.userRepo.findById(+payload!.sub!);
