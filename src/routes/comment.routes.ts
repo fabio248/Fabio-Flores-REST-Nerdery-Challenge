@@ -6,8 +6,15 @@ import {
   getCommentSchema,
   updateCommentSchema,
 } from '../schemas/comment.schema';
-import { commentController } from '../dependencies/dependencies';
+import {
+  commentController,
+  reportController,
+} from '../dependencies/dependencies';
 import { authenticateTokenMiddleware } from '../middleware/verifyJwtToken.middleware';
+import {
+  createReportCommentSchema,
+  createReportSchema,
+} from '../schemas/report.schema';
 
 export const commentRouter = Router();
 
@@ -54,3 +61,14 @@ commentRouter
     ],
     commentController.createReaction.bind(commentController),
   );
+
+commentRouter.post(
+  '/:commentId/reports',
+  [
+    authenticateTokenMiddleware,
+    passport.authenticate('jwt', { session: false }),
+    validateSchemaHandler(createReportCommentSchema, 'params'),
+    validateSchemaHandler(createReportSchema, 'body'),
+  ],
+  reportController.createReportComment.bind(reportController),
+);

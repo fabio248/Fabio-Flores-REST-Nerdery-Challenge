@@ -87,6 +87,15 @@ function buildComment({ ...overrides } = {}) {
     ...overrides,
   };
 }
+
+function buildReport({ ...overrides } = {}) {
+  return {
+    reason: getDescription,
+    authorId: getId({ min: 1, max: 100 }),
+    ...overrides,
+  };
+}
+
 export {
   buildNext,
   buildReq,
@@ -96,6 +105,7 @@ export {
   buildReactionPost,
   buildComment,
   buildReactionComment,
+  buildReport,
   getUsername,
   getId,
   getRole,

@@ -9,16 +9,14 @@ export async function authenticateTokenMiddleware(
 ) {
   const { authorization } = req.headers;
 
-  if (!authorization) {
-    next();
-  }
+  if (authorization !== undefined) {
+    const accessToken: string[] = authorization!.split(' ');
 
-  const accessToken = authorization!.split(' ');
+    const res: boolean = await userService.isCorrectAccessToken(accessToken[1]);
 
-  const res = await userService.isCorrectAccessToken(accessToken[1]);
-
-  if (!res) {
-    next(unauthorized('invalid token'));
+    if (!res) {
+      next(unauthorized('invalid token'));
+    }
   }
 
   next();

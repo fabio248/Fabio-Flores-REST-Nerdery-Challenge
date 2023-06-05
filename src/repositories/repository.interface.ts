@@ -1,6 +1,7 @@
 import {
   Comment,
   Post,
+  Report,
   User,
   UsersLikeComments,
   UsersLikePosts,
@@ -37,4 +38,8 @@ export interface CommentRepository extends BaseRepository<Comment> {
     userId: number,
   ): Promise<UsersLikeComments | null>;
   findCommentWithLikesAndUser(commentId: number): Promise<Comment | null>;
+}
+
+export interface ReportRepository {
+  create(input: object): Promise<Report>;
 }

@@ -4,6 +4,7 @@ import PrismaUserRepository from '../repositories/prisma.user.repository';
 import {
   CommentRepository,
   PostRepository,
+  ReportRepository,
 } from '../repositories/repository.interface';
 import { AuthService } from '../services/auth.service';
 import { MailerService } from '../services/mailer.service';
@@ -16,6 +17,9 @@ import CommentController from '../controllers/comment.controller';
 import PrismaCommentRepository from '../repositories/prisma.comment.repository';
 import UserController from '../controllers/user.controller';
 import AuthController from '../controllers/auth.controller';
+import ReportService from '../services/report.service';
+import ReportController from '../controllers/report.controller';
+import PrismaReportRepository from '../repositories/prisma.report.repository';
 
 let prismaUserRepo;
 let userService: UserService;
@@ -34,6 +38,10 @@ let prismaCommentRepo: CommentRepository;
 let commentService: CommentService;
 let commentController: CommentController;
 
+let prismaReportRepo: ReportRepository;
+let reportService: ReportService;
+let reportController: ReportController;
+
 if (config.enviroment === 'development') {
   prismaUserRepo = new PrismaUserRepository(dbPrisma);
   userService = new UserService(prismaUserRepo);
@@ -51,6 +59,14 @@ if (config.enviroment === 'development') {
   prismaCommentRepo = new PrismaCommentRepository(dbPrisma);
   commentService = new CommentService(prismaCommentRepo, postService);
   commentController = new CommentController(commentService);
+
+  prismaReportRepo = new PrismaReportRepository(dbPrisma);
+  reportService = new ReportService(
+    prismaReportRepo,
+    postService,
+    commentService,
+  );
+  reportController = new ReportController(reportService);
 }
 
 export {
@@ -62,4 +78,5 @@ export {
   postService,
   postController,
   commentController,
+  reportController,
 };

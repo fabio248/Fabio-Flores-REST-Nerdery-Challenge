@@ -10,9 +10,14 @@ import {
 import {
   commentController,
   postController,
+  reportController,
 } from '../dependencies/dependencies';
 import { createCommentSchema } from '../schemas/comment.schema';
 import { authenticateTokenMiddleware } from '../middleware/verifyJwtToken.middleware';
+import {
+  createReportPostSchema,
+  createReportSchema,
+} from '../schemas/report.schema';
 
 export const postRouter = Router();
 
@@ -79,4 +84,18 @@ postRouter
       validateSchemaHandler(createCommentSchema, 'body'),
     ],
     commentController.create.bind(commentController),
+  );
+
+postRouter
+  .route('/:postId/reports')
+  .all(
+    authenticateTokenMiddleware,
+    passport.authenticate('jwt', { session: false }),
+  )
+  .post(
+    [
+      validateSchemaHandler(createReportPostSchema, 'params'),
+      validateSchemaHandler(createReportSchema, 'body'),
+    ],
+    reportController.createReportPost.bind(reportController),
   );

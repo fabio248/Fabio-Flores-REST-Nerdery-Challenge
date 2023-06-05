@@ -22,8 +22,8 @@ import './utils/auth/index';
 routerApi(app);
 
 app.use(errorValidateHandler);
-app.use(jwtErrorHandler);
 app.use(genericErrorHandler);
+app.use(jwtErrorHandler);
 
 app.listen(config.port, () => {
   console.log(`Running on port ${config.port}`);
